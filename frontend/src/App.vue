@@ -127,10 +127,11 @@ ul {
 }
 
 .file {
-  border: 1px dashed #ccc;
+  border: 1px solid #121212;
   padding: 1em;
   margin-bottom: 0.5em;
   border-radius: 10px;
+  box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
 }
 
 .file h2 {
