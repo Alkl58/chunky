@@ -1,0 +1,15 @@
+# Dependency directories
+node_modules/
+
+# dotenv environment variable files
+.env
+
+# Build directory / files for frontend
+/public/*.html
+/public/*.png
+/public/*.ico
+/public/assets/
+
+# Upload directory
+/uploads/*
+!/uploads/.gitignore

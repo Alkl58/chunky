@@ -1,0 +1,67 @@
+const { Server, EVENTS } = require('@tus/server');
+const { FileStore } = require('@tus/file-store');
+const { moveToBucketFolder } = require('../utils/fileUtils');
+
+const express = require('express');
+const jwt = require('jsonwebtoken');
+
+const uploadRouter = express.Router();
+const UPLOAD_DIRECTORY = process.env.UPLOAD_DIRECTORY || 'uploads';
+
+// Setup tus server
+const tusServer = new Server({
+    path: '/api/upload',
+    datastore: new FileStore({ directory: UPLOAD_DIRECTORY }),
+});
+
+// Middleware for token verification
+const verifyToken = (req, res, next) => {
+    const token = req.headers['token'];
+
+    if (!token) {
+        return res.status(401).send('Unauthorized');
+    }
+
+    try {
+        jwt.verify(token, process.env.PRIVATE_KEY);
+        next(); // Proceed to the next middleware/route handler
+    } catch (err) {
+        console.error(`Invalid token ${token}!`);
+        return res.status(401).send('Invalid token!');
+    }
+};
+
+// Handle tus.io uploads
+uploadRouter.all('/api/upload/*', verifyToken, (req, res) => {
+    tusServer.handle(req, res)
+});
+
+uploadRouter.all('/api/upload', verifyToken, (req, res) => {
+    tusServer.handle(req, res)
+});
+
+// Handle file upload event
+tusServer.on(EVENTS.POST_FINISH, (req, res, upload) => {
+    const token = req.headers['token'];
+    const bucketId = upload.metadata.bucketId;
+    if (!token || !bucketId) {
+        console.error("No token or bucketId provided! This should never happen!\n" + upload);
+        return;
+    }
+
+    try {
+        var decoded = jwt.verify(token, process.env.PRIVATE_KEY);
+
+        // Check if provided token matches the bucket id
+        if (decoded.data === bucketId) {
+            moveToBucketFolder(decoded.data, upload.id);
+            return;
+        } 
+
+        console.error(`BucketId: ${bucketId} does not match decoded token value: ${decoded.data}`);
+    } catch(err) {
+        console.error(`Invalid bucket id ${bucketId} - Deleting file!`);
+    }
+});
+
+module.exports = uploadRouter;
