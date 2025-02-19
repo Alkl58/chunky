@@ -22,7 +22,7 @@
 - [ ] One-time / Exptire-time downloads
 - [ ] Admin Page
 - [ ] Upload Password / tokens
-- [ ] Download Password
+- [x] Bucket Password
 - [ ] File encryption (Client side?)
 - [ ] Localization (languages)
 

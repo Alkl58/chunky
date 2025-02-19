@@ -13,6 +13,14 @@
       <p>{{ error }}</p>
     </div>
 
+    <div v-if="authRequired && !bucketData">
+      <div class="container">
+        <p>Bucket password:</p>
+        <input type="text" v-model="password" class="text-input" />
+        <button class="upload-button" @click="fetchBucket">Submit</button>
+      </div>
+    </div>
+
     <!-- Display bucket files once loaded -->
     <div v-if="bucketData && bucketData.files && !loading && !error">
       <ul>
@@ -36,11 +44,18 @@ export default {
       bucketData: null,
       loading: true,
       error: null,
+      authRequired: false,
+      password: null,
     };
   },
   methods: {
     fetchBucket() {
-      fetch(`/api/bucket/${this.bucketId}`)
+      const passwordHeader = new Headers();
+      if (this.password) {
+        passwordHeader.append("chunky-bucket-auth", this.password);
+      }
+
+      fetch(`/api/bucket/${this.bucketId}`, {headers: passwordHeader})
         .then(response => {
           if (!response.ok) {
             throw new Error("Network response was not ok");
@@ -50,9 +65,13 @@ export default {
         .then(data => {
           // Handle cases where the API might return an error string instead of an object
           if (typeof data === "string") {
+            if (data == "Password required!") {
+              this.authRequired = true;
+            }
             this.error = data;
           } else {
             this.bucketData = data;
+            this.error = null;
           }
         })
         .catch(err => {

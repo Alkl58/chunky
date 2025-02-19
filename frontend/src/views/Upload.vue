@@ -30,6 +30,9 @@
         Upload
       </button>
     </div>
+    <div class="container">
+      <input type="text" v-model="password" placeholder="Bucket Password (optional)" class="text-input" />
+    </div>
 
     <div v-if="filesToUpload.length">
       <p>Total: <small>{{ formatSize(totalSize) }}</small></p>
@@ -64,6 +67,7 @@ export default {
       fileProgress: new Map(),
       fileErrors: [],
       totalSize: 0,
+      password: null,
     };
   },
   methods: {
@@ -106,6 +110,7 @@ export default {
             filename: file.name,
             filetype: file.type,
             bucketId: bucketId,
+            ...(this.password !== null && { password: this.password }),
           },
           headers: {
             "token": bucketToken
@@ -138,6 +143,22 @@ export default {
 </script>
 
 <style>
+.text-input {
+  border-radius: 5px;
+  background: #1d1d1d;
+  border-top: 0px;
+  border-left: 0px;
+  border-right: 0px;
+  border-color: dodgerblue;
+  padding: 5px;
+  color:white;
+  width: 40%;
+}
+
+.text-input:hover {
+  border-color: rgb(70, 163, 255);
+}
+
 .message {
   display: flex;
   align-items: center;

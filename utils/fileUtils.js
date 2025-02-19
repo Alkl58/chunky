@@ -37,6 +37,7 @@ function getBucketFiles(bucketId) {
 
         // delete information
         delete json['creation_date'];
+        delete json['metadata']['password'];
 
         bucketFiles.push(json);
     });
@@ -44,4 +45,22 @@ function getBucketFiles(bucketId) {
     return bucketFiles;
 }
 
-module.exports = { moveToBucketFolder, getBucketFiles };
+function getBucketPassword(bucketId) {
+    const bucketFolder = path.join(__dirname, '../', UPLOAD_DIRECTORY, bucketId);
+
+    var password = null;
+    fs.readdirSync(bucketFolder).forEach(file => {
+        if (!file.endsWith('.json')) {
+            return;
+        }
+
+        const json = JSON.parse(fs.readFileSync(path.join(bucketFolder, file), 'utf8'))['metadata'];
+        if (json['password']) {
+            password = json['password'];
+        }
+    });
+
+    return password;
+}
+
+module.exports = { moveToBucketFolder, getBucketFiles, getBucketPassword };
