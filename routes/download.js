@@ -11,7 +11,7 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
     const filePath = path.join(__dirname, '../', UPLOAD_DIRECTORY, bucketId, fileId);
     const metaFilePath = filePath + '.json';
 
-    if (!fs.existsSync(filePath)) {
+    if (!fs.existsSync(filePath) || fileId.toLowerCase().endsWith('.json')) {
         return res.status(404).send('File not found');
     }
 
