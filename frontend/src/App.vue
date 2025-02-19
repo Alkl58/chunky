@@ -88,7 +88,6 @@ h1 {
 
 
 input[type="file"] {
-  background-color: #fff;
   width: 100%;
   text-align: center;
 }
@@ -96,13 +95,12 @@ input[type="file"] {
 input[type="file"]::file-selector-button, .upload-button {
   padding: 1em 1.5em;
   border-width: 0;
-  border-radius: 1rem;
+  border-radius: 10px;
   background-color: dodgerblue;
   color: #FFFFFF;
   font-weight: bold;
   transition: all .25s ease-in-out;
   cursor: pointer;
-  margin-right: 1em;
 }
 
 .upload-button {

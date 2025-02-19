@@ -88,7 +88,7 @@ export default {
 .download-button {
   padding: 0.5em 1.0em;
   border-width: 0;
-  border-radius: 1rem;
+  border-radius: 10px;
   background-color: dodgerblue;
   color: #FFFFFF;
   font-weight: bold;
