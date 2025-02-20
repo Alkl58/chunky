@@ -13,54 +13,54 @@ import { RouterView } from 'vue-router'
     color: white;
   }
 
-  .center {
+  .form {
     background-color: #282828 !important;
   }
 }
 
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
-  .center {
+  .form {
     width: 80%;
   }
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
 @media only screen and (min-width: 600px) {
-  .center {
+  .form {
     width: 70%;
   }
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
 @media only screen and (min-width: 768px) {
-  .center {
+  .form {
     width: 60%;
   }
 }
 
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
-  .center {
+  .form {
     width: 50%;
   }
 }
 
 /* Extra large devices (large laptops and desktops, 1200px and up) */
 @media only screen and (min-width: 1200px) {
-  .center {
+  .form {
     width: 40%;
   }
 } 
 
 @media only screen and (min-width: 1400px) {
-  .center {
+  .form {
     width: 30%;
   }
 } 
 
 @media only screen and (min-width: 1800px) {
-  .center {
+  .form {
     width: 20%;
   }
 } 
@@ -71,21 +71,26 @@ body {
 }
 
 .center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 90vh;
+}
+
+.form {
   background-color: white;
   border-radius: 10px;
   padding: 25px;
   box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
+  max-height: 80vh;
+  overflow-y: scroll;
+  overflow-x: clip;
 }
 
 h1 {
   text-align: center;
 }
-
 
 input[type="file"] {
   width: 100%;
@@ -93,7 +98,7 @@ input[type="file"] {
 }
 
 input[type="file"]::file-selector-button, .upload-button {
-  padding: 1em 1.5em;
+  padding: 0.5em 1.0em;
   border-width: 0;
   border-radius: 10px;
   background-color: dodgerblue;

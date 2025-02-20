@@ -1,36 +1,39 @@
 <template>
   <div class="center">
-    <div class="container">
-      <img src="/cloud.png">
-      <h1>File Download</h1>
-    </div>
-    <!-- Loading and error states -->
-    <div v-if="loading" class="message">
-      <p>Loading bucket data...</p>
-    </div>
-
-    <div v-if="error" class="message message-error">
-      <p>{{ error }}</p>
-    </div>
-
-    <div v-if="authRequired && !bucketData">
+    <div class="form">
       <div class="container">
-        <p>Bucket password:</p>
-        <input type="text" v-model="password" class="text-input" />
-        <button class="upload-button" @click="fetchBucket">Submit</button>
+        <img src="/cloud.png">
+        <h1>File Download</h1>
       </div>
-    </div>
+      <!-- Loading and error states -->
+      <div v-if="loading" class="message">
+        <p>Loading bucket data...</p>
+      </div>
 
-    <!-- Display bucket files once loaded -->
-    <div v-if="bucketData && bucketData.files && !loading && !error">
-      <ul>
-        <li v-for="file in bucketData.files" :key="file.id" class="file">
-          <p>{{ file.metadata.filename }} <small>({{ formatSize(file.size) }})</small></p>
-          <div class="download-container">
-            <a class="download-button" :href="`/download/${bucketId}/${file.id}`" target="_blank" :download="file.metadata.filename">Download</a>
-          </div>
-        </li>
-      </ul>
+      <div v-if="error" class="message message-error">
+        <p>{{ error }}</p>
+      </div>
+
+      <div v-if="authRequired && !bucketData">
+        <div class="container">
+          <p>Bucket password:</p>
+          <input type="text" v-model="password" class="text-input" />
+          <button class="upload-button" @click="fetchBucket">Submit</button>
+        </div>
+      </div>
+
+      <!-- Display bucket files once loaded -->
+      <div v-if="bucketData && bucketData.files && !loading && !error">
+        <ul>
+          <li v-for="file in bucketData.files" :key="file.id" class="file">
+            <p>{{ file.metadata.filename }} <small>({{ formatSize(file.size) }})</small></p>
+            <div class="download-container">
+              <a class="download-button" :href="`/download/${bucketId}/${file.id}`" target="_blank"
+                :download="file.metadata.filename">Download</a>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
@@ -55,7 +58,7 @@ export default {
         passwordHeader.append("chunky-bucket-auth", this.password);
       }
 
-      fetch(`/api/bucket/${this.bucketId}`, {headers: passwordHeader})
+      fetch(`/api/bucket/${this.bucketId}`, { headers: passwordHeader })
         .then(response => {
           if (!response.ok) {
             throw new Error("Network response was not ok");

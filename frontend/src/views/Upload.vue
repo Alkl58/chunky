@@ -1,55 +1,62 @@
 <template>
   <div class="center">
-    <div class="container">
-      <img src="/cloud.png">
-      <h1>File Upload</h1>
-    </div>
-
-    <div v-if="error" class="message message-error">
-      <p>{{ error }}</p>
-    </div>
-    <div v-if="bucketUrl" class="message">
-      <div>
-        <!-- Checkmark Icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-check">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M5 12l5 5l10 -10" />
-        </svg>
+    <div class="form">
+      <div class="container">
+        <img src="/cloud.png">
+        <h1>File Upload</h1>
       </div>
-      <div class="message-message">
-        <p>All files uploaded!</p>
-        <p>Download: <a :href="bucketUrl" target="_blank">{{ bucketUrl }}</a></p>
+
+      <div v-if="error" class="message message-error">
+        <p>{{ error }}</p>
+      </div>
+      <div v-if="bucketUrl" class="message">
+        <div>
+          <!-- Checkmark Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-check">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M5 12l5 5l10 -10" />
+          </svg>
+        </div>
+        <div class="message-message">
+          <p>All files uploaded!</p>
+          <p>Download: <a :href="bucketUrl" target="_blank">{{ bucketUrl }}</a></p>
+        </div>
+      </div>
+      <div class="container">
+        <input type="file" @change="addFilesToList" multiple />
+        <button class="upload-button" @click="uploadFiles"
+          :disabled="uploading || bucketUrl || filesToUpload.length == 0">
+          Upload
+        </button>
+      </div>
+      <div class="container">
+        <input type="text" v-model="password" placeholder="Bucket Password (optional)" class="text-input" />
+      </div>
+
+      <div v-if="filesToUpload.length" class="container">
+        <div class="progress-container" style="display: contents;">
+          <progress :value="totalUploaded" :max="totalSize" style="width: 50%;"></progress>
+          <span>{{ formatUploaded(totalUploaded) }} / {{ formatSize(totalSize) }}</span>
+        </div>
+      </div>
+
+      <div v-if="filesToUpload.length">
+        <ul>
+          <li v-for="file in filesToUpload" :key="file.name"
+            :class="{ 'uploaded': fileProgress.get(file.name) === 100, 'file': true, 'fileError': fileErrors.includes(file.name) }"
+            v-show="fileErrors.includes(file.name) || (filesToUpload.length < 6 || (filesToUpload.length >= 6 && fileProgress.get(file.name) !== file.size))">
+            <p style="margin: 0;">{{ file.name }} <small>({{ formatSize(file.size) }})</small></p>
+            <div class="progress-container">
+              <progress :value="fileProgress.get(file.name) || 0" :max="file.size"></progress>
+              <span>{{ (fileProgress.get(file.name) / file.size * 100 || 0).toFixed(2) }}%</span>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
-    <div class="container">
-      <input type="file" @change="addFilesToList" multiple />
-      <button class="upload-button" @click="uploadFiles"
-        :disabled="uploading || bucketUrl || filesToUpload.length == 0">
-        Upload
-      </button>
-    </div>
-    <div class="container">
-      <input type="text" v-model="password" placeholder="Bucket Password (optional)" class="text-input" />
-    </div>
 
-    <div v-if="filesToUpload.length">
-      <p>Total: <small>{{ formatSize(totalSize) }}</small></p>
-    </div>
-
-    <div v-if="filesToUpload.length">
-      <ul>
-        <li v-for="file in filesToUpload" :key="file.name"
-          :class="{ 'uploaded': fileProgress.get(file.name) === 100, 'file': true, 'fileError': fileErrors.includes(file.name) }">
-          <h2>{{ file.name }} <small>({{ formatSize(file.size) }})</small></h2>
-          <div class="progress-container">
-            <progress :value="fileProgress.get(file.name) || 0" max="100"></progress>
-            <span>{{ (fileProgress.get(file.name) || 0).toFixed(2) }}%</span>
-          </div>
-        </li>
-      </ul>
-    </div>
   </div>
 </template>
 
@@ -67,6 +74,7 @@ export default {
       fileProgress: new Map(),
       fileErrors: [],
       totalSize: 0,
+      totalUploaded: 0,
       password: null,
     };
   },
@@ -85,6 +93,13 @@ export default {
       const i = Math.floor(Math.log(size) / Math.log(1024));
       return (size / Math.pow(1024, i)).toFixed(2) + " " + ["B", "kB", "MB", "GB", "TB"][i];
     },
+    formatUploaded(size) {
+      if (size == 0) {
+        return 0;
+      }
+      const i = Math.floor(Math.log(size) / Math.log(1024));
+      return (size / Math.pow(1024, i)).toFixed(2);
+    },
     async getBucketId() {
       const response = await fetch("/api/generate-bucket");
       const data = await response.json();
@@ -95,7 +110,6 @@ export default {
       this.uploading = true;
       this.bucketUrl = null;
       this.completedUploads = 0;
-      let uploadedSize = 0;
 
       const bucketData = await this.getBucketId();
       const bucketId = bucketData['bucketId'];
@@ -122,9 +136,13 @@ export default {
             this.fileErrors.push(file.name);
           },
           onProgress: (bytesUploaded, bytesTotal) => {
-            const progress = (bytesUploaded / bytesTotal) * 100;
-            this.fileProgress.set(file.name, progress);
-            uploadedSize += bytesUploaded - (this.fileProgress.get(file.name) || 0);
+            this.fileProgress.set(file.name, bytesUploaded);
+            
+            this.totalUploaded = 0;
+            this.fileProgress.forEach((value, key) => {
+              this.totalUploaded += value;
+            });
+
             this.$forceUpdate();
           },
           onSuccess: () => {
@@ -143,16 +161,28 @@ export default {
 </script>
 
 <style>
+@media (prefers-color-scheme: dark) {
+  .text-input {
+    background: #1d1d1d !important;
+    color: white;
+  }
+  progress {
+    background: #121212 !important;
+  }
+  progress::-webkit-progress-bar {
+    background-color: #121212 !important;
+  }
+}
+
 .text-input {
   border-radius: 5px;
-  background: #1d1d1d;
   border-top: 0px;
   border-left: 0px;
   border-right: 0px;
   border-color: dodgerblue;
   padding: 5px;
-  color:white;
   width: 40%;
+  background: #e8e8e8;
 }
 
 .text-input:hover {
@@ -200,12 +230,12 @@ progress {
   width: 80%;
   height: 10px;
   border-radius: 5px;
-  background: #121212;
+  background: #e8e8e8;
   border-color: transparent;
 }
 
 progress::-webkit-progress-bar {
-  background-color: #121212;
+  background-color: #e8e8e8;
   border-color: transparent;
   border-radius: 5px;
 }
