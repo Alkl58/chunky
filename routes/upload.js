@@ -1,12 +1,11 @@
 const { Server, EVENTS } = require('@tus/server');
 const { FileStore } = require('@tus/file-store');
 const { moveToBucketFolder } = require('../utils/fileUtils');
-
+const { UPLOAD_DIRECTORY } = require('../config');
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
 const uploadRouter = express.Router();
-const UPLOAD_DIRECTORY = process.env.UPLOAD_DIRECTORY || 'uploads';
 
 // Setup tus server
 const tusServer = new Server({

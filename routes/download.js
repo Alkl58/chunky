@@ -1,14 +1,14 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const { UPLOAD_DIRECTORY } = require('../config');
 
 const downloadRouter = express.Router();
-const UPLOAD_DIRECTORY = process.env.UPLOAD_DIRECTORY || 'uploads';
 
 // File download with range support
 downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
     const { bucketId, fileId } = req.params;
-    const filePath = path.join(__dirname, '../', UPLOAD_DIRECTORY, bucketId, fileId);
+    const filePath = path.join(UPLOAD_DIRECTORY, bucketId, fileId);
     const metaFilePath = filePath + '.json';
 
     if (!fs.existsSync(filePath) || fileId.toLowerCase().endsWith('.json')) {

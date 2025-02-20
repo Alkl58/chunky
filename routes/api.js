@@ -2,11 +2,10 @@ const express = require('express');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-
 const { getBucketFiles, getBucketPassword } = require('../utils/fileUtils');
+const { UPLOAD_DIRECTORY } = require('../config');
 
 const router = express.Router();
-const UPLOAD_DIRECTORY = process.env.UPLOAD_DIRECTORY || 'uploads';
 
 // Retrieve all files from a bucket
 router.get('/api/bucket/:bucketId', (req, res) => {
@@ -16,7 +15,7 @@ router.get('/api/bucket/:bucketId', (req, res) => {
         return res.json("Not a valid bucket-id");
     }
 
-    const bucketFolder = path.join(__dirname, '../', UPLOAD_DIRECTORY, bucketId);
+    const bucketFolder = path.join(UPLOAD_DIRECTORY, bucketId);
     if (!fs.existsSync(bucketFolder)) { 
         return res.json("Bucket not found!");
     }
@@ -38,7 +37,7 @@ router.get('/api/bucket/:bucketId', (req, res) => {
 
 router.get('/api/generate-bucket', (req, res) => {
     var bucketId = crypto.randomUUID();
-    while (fs.existsSync(path.join(__dirname, '../', UPLOAD_DIRECTORY, bucketId))) {
+    while (fs.existsSync(path.join(UPLOAD_DIRECTORY, bucketId))) {
         // Highly unlikely
         bucketId = crypto.randomUUID();
     }

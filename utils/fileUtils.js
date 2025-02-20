@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const UPLOAD_DIRECTORY = process.env.UPLOAD_DIRECTORY || 'uploads';
+const { UPLOAD_DIRECTORY } = require('../config');
 
 function moveToBucketFolder(bucketId, fileId) {   
     const targetFolder = path.join(UPLOAD_DIRECTORY, bucketId);
@@ -14,8 +14,8 @@ function moveToBucketFolder(bucketId, fileId) {
     }
 
     try {
-        const sourceFile = path.join(__dirname, '../', UPLOAD_DIRECTORY, fileId);
-        const targetFile = path.join(__dirname, '../', targetFolder, fileId);
+        const sourceFile = path.join(UPLOAD_DIRECTORY, fileId);
+        const targetFile = path.join(targetFolder, fileId);
 
         fs.renameSync(sourceFile, targetFile);
         fs.renameSync(sourceFile + '.json', targetFile + '.json');
@@ -25,7 +25,7 @@ function moveToBucketFolder(bucketId, fileId) {
 }
 
 function getBucketFiles(bucketId) {
-    const bucketFolder = path.join(__dirname, '../', UPLOAD_DIRECTORY, bucketId);
+    const bucketFolder = path.join(UPLOAD_DIRECTORY, bucketId);
     const bucketFiles = [];
 
     fs.readdirSync(bucketFolder).forEach(file => {
@@ -46,7 +46,7 @@ function getBucketFiles(bucketId) {
 }
 
 function getBucketPassword(bucketId) {
-    const bucketFolder = path.join(__dirname, '../', UPLOAD_DIRECTORY, bucketId);
+    const bucketFolder = path.join(UPLOAD_DIRECTORY, bucketId);
 
     var password = null;
     fs.readdirSync(bucketFolder).forEach(file => {
