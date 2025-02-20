@@ -12,6 +12,20 @@
     background-color: #282828 !important;
   }
 
+  .upload-list > li {
+    background: #282828 !important;
+  }
+
+  .settings-toggle {
+    background: #282828 !important;
+    color: white;
+    border: unset !important;
+  }
+
+  .settings-panel, .upload-list {
+    background: #121212 !important;
+  }
+
   .text-input {
     background: #1d1d1d !important;
     color: white;
@@ -133,8 +147,19 @@ ul {
   padding: 0;
 }
 
+.upload-list {
+  background: #e8e8e8;
+  border-radius: 10px;
+  padding: 5px;
+  height: 270px;
+  overflow-y: auto;
+}
+
+.upload-list > li {
+  background: white;
+}
+
 .file {
-  border: 1px solid #121212;
   margin-bottom: 0.5em;
   border-radius: 10px;
   box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
@@ -181,6 +206,19 @@ ul {
   height: 44px;
 }
 
+.settings-toggle {
+  width: 100%;
+  background: white;
+  border: 0;
+  padding: 5px;
+}
+
+.settings-panel {
+  background: #e8e8e8;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 10px;
+}
 
 .text-input {
   border-radius: 5px;
@@ -190,7 +228,7 @@ ul {
   border-color: dodgerblue;
   padding: 5px;
   width: 40%;
-  background: #e8e8e8;
+  background: white;
 }
 
 .text-input:hover {

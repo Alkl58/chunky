@@ -19,7 +19,8 @@
 - [x] Light / Dark Mode
 - [ ] File preview
 - [ ] Gallery view
-- [ ] One-time / Exptire-time downloads
+- [x] Bucket / file expiration
+- [ ] One-time downloads
 - [ ] Admin Page
 - [ ] Upload Password / tokens
 - [x] Bucket Password
