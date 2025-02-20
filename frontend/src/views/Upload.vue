@@ -45,7 +45,7 @@
       <div v-if="filesToUpload.length">
         <ul>
           <li v-for="file in filesToUpload" :key="file.name"
-            :class="{ 'uploaded': fileProgress.get(file.name) === 100, 'file': true, 'fileError': fileErrors.includes(file.name) }"
+            :class="{ 'uploaded': fileProgress.get(file.name) === file.size, 'file': true, 'fileError': fileErrors.includes(file.name) }"
             v-show="fileErrors.includes(file.name) || (filesToUpload.length < 6 || (filesToUpload.length >= 6 && fileProgress.get(file.name) !== file.size))">
             <p style="margin: 0;">{{ file.name }} <small>({{ formatSize(file.size) }})</small></p>
             <div class="progress-container">
@@ -174,96 +174,3 @@ export default {
   },
 };
 </script>
-
-<style>
-@media (prefers-color-scheme: dark) {
-  .text-input {
-    background: #1d1d1d !important;
-    color: white;
-  }
-
-  progress {
-    background: #121212 !important;
-  }
-
-  progress::-webkit-progress-bar {
-    background-color: #121212 !important;
-  }
-}
-
-.text-input {
-  border-radius: 5px;
-  border-top: 0px;
-  border-left: 0px;
-  border-right: 0px;
-  border-color: dodgerblue;
-  padding: 5px;
-  width: 40%;
-  background: #e8e8e8;
-}
-
-.text-input:hover {
-  border-color: rgb(70, 163, 255);
-}
-
-.message {
-  display: flex;
-  align-items: center;
-}
-
-.message-message {
-  width: 100%;
-}
-
-.uploaded {
-  border: 1px solid #29b586;
-}
-
-.fileError {
-  border: 1px solid #b52929;
-}
-
-.center {
-  text-align: center;
-}
-
-.container {
-  margin: 20px auto;
-}
-
-.file {
-  list-style: none;
-  padding: 10px;
-}
-
-.progress-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-progress {
-  width: 80%;
-  height: 10px;
-  border-radius: 5px;
-  background: #e8e8e8;
-  border-color: transparent;
-}
-
-progress::-webkit-progress-bar {
-  background-color: #e8e8e8;
-  border-color: transparent;
-  border-radius: 5px;
-}
-
-progress::-webkit-progress-value {
-  background-color: #29b586;
-  border-radius: 5px;
-}
-
-progress::-moz-progress-bar {
-  background-color: #29b586;
-  border-radius: 5px;
-}
-</style>

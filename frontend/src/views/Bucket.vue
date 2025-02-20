@@ -95,27 +95,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.file>p {
-  margin-top: 0;
-}
-
-.download-container {
-  width: 100%;
-  text-align: end;
-  padding-top: 15px;
-}
-
-.download-button {
-  padding: 0.5em 1.0em;
-  border-width: 0;
-  border-radius: 10px;
-  background-color: dodgerblue;
-  color: #FFFFFF;
-  font-weight: bold;
-  transition: all .25s ease-in-out;
-  cursor: pointer;
-  text-decoration-line: none;
-}
-</style>
