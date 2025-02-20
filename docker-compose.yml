@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    environment:
+      - PRIVATE_KEY=super-secret
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./uploads:/data
