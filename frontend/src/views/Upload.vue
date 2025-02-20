@@ -110,12 +110,23 @@ export default {
       this.uploading = true;
       this.bucketUrl = null;
       this.completedUploads = 0;
+      this.fileErrors = [];
+      this.totalUploaded = 0;
 
       const bucketData = await this.getBucketId();
       const bucketId = bucketData['bucketId'];
       const bucketToken = bucketData['token'];
 
-      this.filesToUpload.forEach(file => {
+      const MAX_PARALLEL_UPLOADS = 4;
+      let activeUploads = 0;
+      let uploadQueue = [...this.filesToUpload];
+
+      const startNextUpload = () => {
+        if (uploadQueue.length === 0 || activeUploads >= MAX_PARALLEL_UPLOADS) return;
+
+        const file = uploadQueue.shift();
+        activeUploads++;
+
         const upload = new tus.Upload(file, {
           endpoint: "/api/upload",
           retryDelays: [0, 1000, 3000, 5000],
@@ -132,17 +143,11 @@ export default {
           onError: (error) => {
             console.error("Upload failed:", error);
             this.error = error.message;
-            this.uploading = false;
             this.fileErrors.push(file.name);
           },
-          onProgress: (bytesUploaded, bytesTotal) => {
+          onProgress: (bytesUploaded) => {
             this.fileProgress.set(file.name, bytesUploaded);
-            
-            this.totalUploaded = 0;
-            this.fileProgress.forEach((value, key) => {
-              this.totalUploaded += value;
-            });
-
+            this.totalUploaded = Array.from(this.fileProgress.values()).reduce((a, b) => a + b, 0);
             this.$forceUpdate();
           },
           onSuccess: () => {
@@ -151,11 +156,21 @@ export default {
               this.uploading = false;
               this.bucketUrl = `/bucket/${bucketId}`;
             }
+            activeUploads--;
+            startNextUpload(); // Start a new upload after one finishes
           },
         });
+
         upload.start();
-      });
-    },
+        startNextUpload(); // Ensure up to 4 uploads are running
+      };
+
+      // Start initial batch of uploads
+      for (let i = 0; i < MAX_PARALLEL_UPLOADS; i++) {
+        startNextUpload();
+      }
+    }
+
   },
 };
 </script>
@@ -166,9 +181,11 @@ export default {
     background: #1d1d1d !important;
     color: white;
   }
+
   progress {
     background: #121212 !important;
   }
+
   progress::-webkit-progress-bar {
     background-color: #121212 !important;
   }
