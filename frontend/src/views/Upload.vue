@@ -1,40 +1,74 @@
 <template>
-  <div class="center">
-    <div class="form">
-      <div class="container">
-        <img src="/cloud.png">
-        <h1>File Upload</h1>
+  <div class="flex h-screen dark:bg-neutral-900 dark:text-white">
+    <div class="m-auto">
+      <!-- Branding -->
+      <div class="flex justify-center pb-4">
+        <div class="text-center">
+          <div class="flex justify-center">
+            <img src="/favicon.png">
+          </div>
+          <h1 class="text-4xl font-semibold">chunky</h1>
+          <h2 class="text-2xl font-medium">A easy file share</h2>
+        </div>
       </div>
 
-      <div v-if="error" class="message message-error">
-        <p>{{ error }}</p>
+      <!-- Error -->
+      <div v-if="error" class="flex rounded bg-red-400 text-red-900 min-h-[48px] mb-4">
+        <div class="self-center p-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-x">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M18 6l-12 12" />
+            <path d="M6 6l12 12" />
+          </svg>
+        </div>
+        <p class="self-center">Encountered error: {{ error }}</p>
       </div>
-      <div v-if="bucketUrl" class="message">
-        <div>
-          <!-- Checkmark Icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none"
+
+      <!-- Success -->
+      <div v-if="bucketUrl" class="flex rounded bg-lime-500 text-lime-900 min-h-[48px] mb-4">
+        <div class="self-center p-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             class="icon icon-tabler icons-tabler-outline icon-tabler-check">
             <path stroke="none" d="M0 0h24v24H0z" fill="none" />
             <path d="M5 12l5 5l10 -10" />
           </svg>
         </div>
-        <div class="message-message">
-          <p>All files uploaded!</p>
-          <p>Download: <a :href="bucketUrl" target="_blank">{{ bucketUrl }}</a></p>
-        </div>
+        <p class="self-center">All files uploaded! <a :href="bucketUrl" target="_blank">{{ bucketUrl }}</a></p>
       </div>
-      <div class="container">
-        <input type="file" @change="addFilesToList" multiple />
-        <button class="upload-button" @click="uploadFiles"
-          :disabled="uploading || bucketUrl || filesToUpload.length == 0">
+
+      <!-- Progress -->
+      <div v-if="uploading" class="flex rounded bg-amber-400 text-amber-900 min-h-[48px] mb-4">
+        <div class="self-center p-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-loader-2 animate-spin">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 3a9 9 0 1 0 9 9" />
+          </svg>
+        </div>
+        <p class="self-center">Upload in progress! {{ (totalUploaded / totalSize  * 100 || 0).toFixed(2) }}%</p>
+      </div>
+
+      <!-- File Input -->
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input
+          class="w-full text-gray-500 dark:text-white font-medium text-base bg-gray-100 dark:bg-neutral-700 file:cursor-pointer cursor-pointer file:border-0 file:py-2.5 file:px-4 file:mr-4 file:bg-pink-400 file:hover:bg-pink-500 file:text-white rounded"
+          type="file" @change="addFilesToList" multiple />
+        <button
+          class="font-medium text-base px-4 bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded min-h-[44px]"
+          @click="uploadFiles" :disabled="uploading || bucketUrl || filesToUpload.length == 0">
           Upload
         </button>
       </div>
-      <div>
-        <button class="settings-toggle" @click="showSettings = !showSettings">
+
+      <!-- Settings -->
+      <div class="flex justify-center pt-2">
+        <button class="flex content-center" @click="showSettings = !showSettings">
           Settings
-          <span v-if="showSettings">
+          <span v-if="showSettings" class="self-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
               class="icon icon-tabler icons-tabler-filled icon-tabler-caret-up">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -42,7 +76,7 @@
                 d="M11.293 7.293a1 1 0 0 1 1.32 -.083l.094 .083l6 6l.083 .094l.054 .077l.054 .096l.017 .036l.027 .067l.032 .108l.01 .053l.01 .06l.004 .057l.002 .059l-.002 .059l-.005 .058l-.009 .06l-.01 .052l-.032 .108l-.027 .067l-.07 .132l-.065 .09l-.073 .081l-.094 .083l-.077 .054l-.096 .054l-.036 .017l-.067 .027l-.108 .032l-.053 .01l-.06 .01l-.057 .004l-.059 .002h-12c-.852 0 -1.297 -.986 -.783 -1.623l.076 -.084l6 -6z" />
             </svg>
           </span>
-          <span v-else>
+          <span v-else class="self-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
               class="icon icon-tabler icons-tabler-filled icon-tabler-caret-down">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -51,14 +85,46 @@
             </svg>
           </span>
         </button>
-        <div v-show="showSettings" class="settings-panel">
-          <p>
-            Password:
-            <input type="text" v-model="password" placeholder="optional" class="text-input" />
-          </p>
-          <p>
-            Expiration:
-            <select v-model="expirationTime" class="text-input">
+      </div>
+      <div v-show="showSettings"
+        class="grid grid-rows-2 md:grid-cols-2 md:grid-rows-1 gap-2 bg-gray-100 dark:bg-neutral-800 p-2 mt-1 rounded">
+        <!-- Bucket password -->
+        <div>
+          <label for="bucket-password" class="block mb-2 font-medium text-gray-900 dark:text-white">Password</label>
+          <div class="flex">
+            <span
+              class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border rounded-e-0 border-gray-300 border-e-0 rounded-s-md dark:bg-neutral-600 dark:text-neutral-300 dark:border-neutral-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="icon icon-tabler icons-tabler-outline icon-tabler-lock">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" />
+                <path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />
+                <path d="M8 11v-4a4 4 0 1 1 8 0v4" />
+              </svg>
+            </span>
+            <input v-model="password" type="text" id="bucket-password"
+              class="rounded-none rounded-e-lg bg-gray-50 border h-[42px] text-gray-900 focus:ring-pink-500 focus:border-pink-500 block flex-1 min-w-0 w-full text-sm border-neutral-300 p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500"
+              placeholder="optional">
+          </div>
+        </div>
+
+        <!-- Expiration -->
+        <div>
+          <label for="bucket-expiration" class="block mb-2 font-medium text-gray-900 dark:text-white">Expiration</label>
+          <div class="flex">
+            <span
+              class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border rounded-e-0 border-gray-300 border-e-0 rounded-s-md dark:bg-neutral-600 dark:text-neutral-300 dark:border-neutral-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="icon icon-tabler icons-tabler-outline icon-tabler-clock">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+                <path d="M12 7v5l3 3" />
+              </svg>
+            </span>
+            <select v-model="expirationTime" id="bucket-expiration"
+              class="bg-gray-50 border h-[42px] border-gray-300 text-gray-900 text-sm rounded-e-lg border-s-gray-100 dark:border-s-neutral-700 border-s-2 focus:ring-pink-500 focus:border-pink-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500">
               <option value="1h">1 Hour</option>
               <option value="6h">6 Hours</option>
               <option value="1d">1 Day</option>
@@ -68,27 +134,40 @@
               <option value="4w">4 Weeks</option>
               <option value="8w">8 Weeks</option>
             </select>
-          </p>
-        </div>
-      </div>
-      <div v-if="filesToUpload.length && totalUploaded != totalSize">
-        <div v-if="filesToUpload.length" class="container">
-          <div class="progress-container" style="display: contents;">
-            <progress :value="totalUploaded" :max="totalSize" style="width: 50%;"></progress>
-            <span>{{ formatUploaded(totalUploaded) }} / {{ formatSize(totalSize) }}</span>
           </div>
         </div>
-        <ul class="upload-list">
-          <li v-for="file in filesToUpload" :key="file.name"
-            :class="{ 'uploaded': fileProgress.get(file.name) === file.size, 'file': true, 'fileError': fileErrors.includes(file.name) }"
-            v-show="fileErrors.includes(file.name) || fileProgress.get(file.name) !== file.size">
-            <p style="margin: 0;">{{ file.name }} <small>({{ formatSize(file.size) }})</small></p>
-            <div class="progress-container">
-              <progress :value="fileProgress.get(file.name) || 0" :max="file.size"></progress>
-              <span>{{ (fileProgress.get(file.name) / file.size * 100 || 0).toFixed(2) }}%</span>
+      </div>
+
+      <!-- File List -->
+      <div v-if="filesToUpload.length && totalUploaded != totalSize">
+        <div class="w-full text-end">
+          <span>Total: {{ formatUploaded(totalUploaded) }} / {{ formatSize(totalSize) }}</span>
+        </div>
+
+        <div v-for="file in filesToUpload" :key="file.name" class="w-full grid gap-1 mb-1 rounded bg-gray-100 dark:bg-neutral-800 p-2"
+          v-show="fileErrors.includes(file.name) || fileProgress.get(file.name) !== file.size">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <div class="grid gap-1">
+                <h4 class="text-sm font-semibold leading-snug">{{ file.name }} <small>({{ formatSize(file.size)
+                    }})</small></h4>
+              </div>
             </div>
-          </li>
-        </ul>
+            <!-- To-Do: Add Delete Button -->
+          </div>
+          <!-- Progressbar -->
+          <div class="relative flex items-center gap-2.5">
+            <div class="relative w-full h-2.5  overflow-hidden rounded-3xl bg-neutral-300 dark:bg-neutral-900">
+              <div role="progressbar" :aria-valuenow="`${fileProgress.get(file.name)}`" aria-valuemin="0"
+                :aria-valuemax="`${fileProgress.get(file.name)}`"
+                :style="`width: ${fileProgress.get(file.name) / file.size * 100}%`"
+                class="flex h-full items-center justify-center bg-pink-400  text-white rounded-3xl">
+              </div>
+            </div>
+            <span class="ml-2 rounded-full text-xs font-medium flex justify-center items-center ">{{
+              (fileProgress.get(file.name) / file.size * 100 || 0).toFixed(2) }}%</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
