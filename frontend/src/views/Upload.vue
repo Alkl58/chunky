@@ -263,7 +263,7 @@ export default {
             this.completedUploads++;
             if (this.completedUploads === this.filesToUpload.length) {
               this.uploading = false;
-              this.bucketUrl = `/bucket/${bucketId}`;
+              this.bucketUrl = window.location.origin + `/bucket/${bucketId}`;
             }
             activeUploads--;
             startNextUpload(); // Start a new upload after one finishes
