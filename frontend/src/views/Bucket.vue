@@ -49,6 +49,25 @@
 
       <!-- Display bucket files once loaded -->
       <div v-if="bucketData && bucketData.files && !loading && !error">
+        <!-- ZIP Download -->
+        <div class="w-full pb-2 flex justify-end">
+          <div class="rounded bg-gray-100 dark:bg-neutral-800 flex p-2">
+            <p class="self-center pr-2">Download all:</p>
+            <a class="font-medium p-2 text-base bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded"
+            :href="`/download-zip/${bucketId}${password ? `?p=${password}` : ''}`" target="_blank">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-zip">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+              <path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" />
+              <path d="M16 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" />
+              <path d="M12 15v6" />
+              <path d="M5 15h3l-3 6h3" />
+            </svg></a>
+          </div>
+        </div>
+        <!-- Files -->
         <div v-for="file in bucketData.files" :key="file.id"
           class="w-full grid gap-1 mb-1 rounded bg-gray-100 dark:bg-neutral-800 p-2">
           <div class="flex items-center justify-between gap-2">
@@ -87,12 +106,14 @@ export default {
     return {
       bucketId: this.$route.params.bucketId || null,
       bucketData: null,
+      bucketDownload: null,
       loading: true,
       error: null,
       authRequired: false,
       password: null,
     };
   },
+
   methods: {
     fetchBucket() {
       const passwordHeader = new Headers();

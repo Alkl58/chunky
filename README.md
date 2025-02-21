@@ -1,6 +1,6 @@
 
 <p align="center">
-    <img style="width: 96px; margin: 4em 0" src="frontend/public/cloud.png" alt="chunky logo" />
+    <img style="width: 96px; margin: 4em 0" src="frontend/public/favicon.png" alt="chunky logo" />
     <h1 align="center">chunky: A lightweight file sharing solution</h1>
 </p>
 
@@ -15,7 +15,7 @@
 - [ ] Drag & Drop support
 - [x] Resumable download
 - [x] Multiple file upload (buckets)
-- [ ] Multiple file donwload (zip, tar, ...)
+- [x] Multiple file download (zip)
 - [x] Light / Dark Mode
 - [ ] File preview
 - [ ] Gallery view

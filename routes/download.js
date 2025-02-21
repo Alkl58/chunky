@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const archiver = require('archiver');
+const { getBucketPassword } = require('../utils/fileUtils');
 const { UPLOAD_DIRECTORY } = require('../config');
 
 const downloadRouter = express.Router();
@@ -59,6 +61,60 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
 
         fs.createReadStream(filePath).pipe(res);
     }
+});
+
+downloadRouter.get('/download-zip/:bucketId', (req, res) => {
+    const { bucketId } = req.params;
+    const password = req.query.p;
+    const folderPath = path.join(UPLOAD_DIRECTORY, bucketId);
+
+    if (bucketId.length !== 36) {
+        return res.status(404).send("Not a valid bucket-id");
+    }
+
+    if (!fs.existsSync(folderPath) || !fs.lstatSync(folderPath).isDirectory()) {
+        return res.status(404).send("Bucket not found");
+    }
+
+    const bucketPassword = getBucketPassword(bucketId);
+    if (bucketPassword && !password) {
+        return res.status(401).send("Password required!");
+    }
+
+    if (bucketPassword && password !== bucketPassword) {
+        return res.status(401).send("Password incorrect!");
+    }
+
+    // Set headers for ZIP download
+    res.set({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${bucketId}.zip"`
+    });
+
+    // Create a ZIP archive and stream it
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    archive.on('error', err => res.status(500).send({ error: err.message }));
+    archive.pipe(res); // Stream archive to response
+
+    fs.readdir(folderPath, (err, files) => {
+        if (err) {
+            return res.status(500).send('Error reading directory');
+        }
+
+        files.forEach(file => {
+            const filePath = path.join(folderPath, file);
+            if (fs.lstatSync(filePath).isFile() && !filePath.endsWith('.json')) {
+                // Get original filename
+                const json = JSON.parse(fs.readFileSync(filePath + '.json', 'utf8'));
+                const fileName = json['metadata']['filename'];
+
+                archive.file(filePath, { name: fileName }); // Add file to ZIP
+            }
+        });
+
+        archive.finalize(); // Finalize ZIP creation
+    });
 });
 
 module.exports = downloadRouter;
