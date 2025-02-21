@@ -8,6 +8,7 @@ node_modules/
 /public/*.html
 /public/*.png
 /public/*.ico
+/public/*.css
 /public/assets/
 
 # Upload directory
