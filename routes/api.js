@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const config = require('../config');
+
 const { getBucketFiles, getBucketPassword } = require('../utils/fileUtils');
 const { UPLOAD_DIRECTORY } = require('../config');
 
@@ -45,6 +47,13 @@ router.get('/api/generate-bucket', (req, res) => {
     // Create signed token
     var token = jwt.sign({ data: bucketId }, process.env.PRIVATE_KEY, { expiresIn: '12h' });
     res.json({token, bucketId});
-})
+});
+
+router.get('/api/config', (req, res) => {
+    res.json({
+        MAX_FILE_SIZE: config.MAX_FILE_SIZE,
+        MAX_BUCKET_SIZE: config.MAX_BUCKET_SIZE,
+    });
+});
 
 module.exports = router;

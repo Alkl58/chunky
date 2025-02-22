@@ -1,7 +1,7 @@
 const { Server, EVENTS } = require('@tus/server');
 const { FileStore } = require('@tus/file-store');
 const { moveToBucketFolder } = require('../utils/fileUtils');
-const { UPLOAD_DIRECTORY } = require('../config');
+const { UPLOAD_DIRECTORY, MAX_FILE_SIZE } = require('../config');
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
@@ -30,12 +30,20 @@ const verifyToken = (req, res, next) => {
     }
 };
 
+const verifyFileSize = (req, res, next) => {
+    const size = req.headers['upload-length'];
+    if (MAX_FILE_SIZE !== 1 && MAX_FILE_SIZE < Number(size)) {
+        return res.status(400).send('File too big!');
+    }
+    next();
+};
+
 // Handle tus.io uploads
 uploadRouter.all('/api/upload/*', verifyToken, (req, res) => {
     tusServer.handle(req, res)
 });
 
-uploadRouter.all('/api/upload', verifyToken, (req, res) => {
+uploadRouter.all('/api/upload', [verifyToken, verifyFileSize], (req, res) => {
     tusServer.handle(req, res)
 });
 
@@ -55,10 +63,10 @@ tusServer.on(EVENTS.POST_FINISH, (req, res, upload) => {
         if (decoded.data === bucketId) {
             moveToBucketFolder(decoded.data, upload.id);
             return;
-        } 
+        }
 
         console.error(`BucketId: ${bucketId} does not match decoded token value: ${decoded.data}`);
-    } catch(err) {
+    } catch (err) {
         console.error(`Invalid bucket id ${bucketId} - Deleting file!`);
     }
 });

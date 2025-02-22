@@ -11,19 +11,9 @@
       </div>
 
       <!-- Loading and error states -->
-      <div v-if="loading" class="flex rounded bg-amber-400 text-amber-900 min-h-[48px] mb-4">
-        <div class="self-center p-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            class="icon icon-tabler icons-tabler-outline icon-tabler-loader-2 animate-spin">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-            <path d="M12 3a9 9 0 1 0 9 9" />
-          </svg>
-        </div>
-        <p class="self-center">Loading bucket data...</p>
-      </div>
+      <LoadingMessage :message="loadingMessage"/>
 
-      <ErrorMessage :message="error" />
+      <ErrorMessage :message="error"/>
 
       <div v-if="authRequired && !bucketData" class="grid grid-rows-2 gap-4 pt-2">
         <div class="flex">
@@ -48,7 +38,7 @@
       </div>
 
       <!-- Display bucket files once loaded -->
-      <div v-if="bucketData && bucketData.files && !loading && !error">
+      <div v-if="bucketData && bucketData.files && !loadingMessage && !error">
         <!-- ZIP Download -->
         <div class="w-full pb-2 flex justify-end">
           <div class="rounded bg-gray-100 dark:bg-neutral-800 flex p-2">
@@ -96,18 +86,20 @@
 
 <script>
 import ErrorMessage from './components/ErrorMessage.vue';
+import LoadingMessage from './components/LoadingMessage.vue';
 
 export default {
   name: "Bucket",
   components: {
-    ErrorMessage
+    ErrorMessage,
+    LoadingMessage
   },
   data() {
     return {
       bucketId: this.$route.params.bucketId || null,
       bucketData: null,
       bucketDownload: null,
-      loading: true,
+      loadingMessage: null,
       error: null,
       authRequired: false,
       password: null,
@@ -116,6 +108,8 @@ export default {
 
   methods: {
     fetchBucket() {
+      this.loadingMessage = 'Loading bucket data...';
+
       const passwordHeader = new Headers();
       if (this.password) {
         passwordHeader.append("chunky-bucket-auth", this.password);
@@ -144,7 +138,7 @@ export default {
           this.error = err.message || "An error occurred while fetching the bucket data.";
         })
         .finally(() => {
-          this.loading = false;
+          this.loadingMessage = null;
         });
     },
     formatSize(size) {

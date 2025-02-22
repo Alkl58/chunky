@@ -12,8 +12,8 @@
         </div>
       </div>
 
-      <!-- Error -->
-      <ErrorMessage :message="error" />
+      <LoadingMessage :message="loadingMessage" />
+      <ErrorMessage v-for="(error, index) in errors" :key="index" :message="error" />
 
       <!-- Success -->
       <div v-if="bucketUrl" class="flex rounded bg-lime-500 text-lime-900 min-h-[48px] mb-4">
@@ -38,11 +38,11 @@
             <path d="M12 3a9 9 0 1 0 9 9" />
           </svg>
         </div>
-        <p class="self-center">Upload in progress! {{ (totalUploaded / totalSize  * 100 || 0).toFixed(2) }}%</p>
+        <p class="self-center">Upload in progress! {{ (totalUploaded / totalSize * 100 || 0).toFixed(2) }}%</p>
       </div>
 
       <!-- File Input -->
-      <div class="flex flex-col sm:flex-row gap-2">
+      <div v-if="config" class="flex flex-col sm:flex-row gap-2">
         <input
           class="w-full text-gray-500 dark:text-white font-medium text-base bg-gray-100 dark:bg-neutral-700 file:cursor-pointer cursor-pointer file:border-0 file:py-2.5 file:px-4 file:mr-4 file:bg-pink-400 file:hover:bg-pink-500 file:text-white rounded"
           type="file" @change="addFilesToList" multiple />
@@ -54,7 +54,7 @@
       </div>
 
       <!-- Settings -->
-      <div class="flex justify-center pt-2">
+      <div v-if="config" class="flex justify-center pt-2">
         <button class="flex content-center" @click="showSettings = !showSettings">
           Settings
           <span v-if="showSettings" class="self-center">
@@ -133,7 +133,8 @@
           <span>Total: {{ formatUploaded(totalUploaded) }} / {{ formatSize(totalSize) }}</span>
         </div>
 
-        <div v-for="file in filesToUpload" :key="file.name" class="w-full grid gap-1 mb-1 rounded bg-gray-100 dark:bg-neutral-800 p-2"
+        <div v-for="file in filesToUpload" :key="file.name"
+          class="w-full grid gap-1 mb-1 rounded bg-gray-100 dark:bg-neutral-800 p-2"
           v-show="fileErrors.includes(file.name) || fileProgress.get(file.name) !== file.size">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
@@ -165,10 +166,12 @@
 <script>
 import * as tus from 'tus-js-client';
 import ErrorMessage from './components/ErrorMessage.vue';
+import LoadingMessage from './components/LoadingMessage.vue';
 
 export default {
   components: {
-    ErrorMessage
+    ErrorMessage,
+    LoadingMessage
   },
   data() {
     return {
@@ -176,7 +179,7 @@ export default {
       filesToUpload: [],
       completedUploads: 0,
       bucketUrl: null,
-      error: null,
+      errors: [],
       fileProgress: new Map(),
       fileErrors: [],
       totalSize: 0,
@@ -184,18 +187,70 @@ export default {
       password: null,
       showSettings: false,
       expirationTime: '4w',
+      loadingMessage: null,
+      config: null,
     };
   },
   methods: {
+    fetchConfig() {
+      this.loadingMessage = 'Fetching configuration...';
+      fetch('/api/config')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Error fetching config: Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Handle cases where the API might return an error string instead of an object
+          if (typeof data === "string") {
+            this.errors.push(data);
+          } else {
+            this.config = data;
+          }
+        })
+        .catch(err => {
+          this.errors.push(err.message || "An error occurred while fetching the config data.");
+        })
+        .finally(() => {
+          this.loadingMessage = null;
+        });
+    },
     addFilesToList(event) {
+      if (!this.config) return;
       const files = Array.from(event.target.files);
       if (files.length === 0) return;
-      this.filesToUpload = files;
+      this.errors = [];
+
+      let filesTooBig = 0;
+      let bucketTooBig = 0;
       files.forEach(file => {
+        console.log("Size: " + file.size);
+        console.log("Size: " + this.formatSize(file.size));
+        if (this.config.MAX_FILE_SIZE !== -1 && this.config.MAX_FILE_SIZE < file.size) {
+          console.log("File: " + file.name + " is too big!");
+          filesTooBig += 1;
+          return;
+        }
+
+        if (this.config.MAX_BUCKET_SIZE !== 1 && this.config.MAX_BUCKET_SIZE < this.totalSize + file.size) {
+          console.log("Bucket is too big!");
+          bucketTooBig += 1;
+          return;
+        }
+
+        this.filesToUpload.push(file);
         this.fileProgress.set(file.name, 0);
         this.totalSize += file.size;
       });
 
+      if (filesTooBig) {
+        this.errors.push(`${filesTooBig} file(s) got removed. Max file size is ${this.formatSize(this.config.MAX_FILE_SIZE)}`);
+      }
+
+      if (bucketTooBig) {
+        this.errors.push(`${bucketTooBig} file(s) got removed. Max bucket size is ${this.formatSize(this.config.MAX_BUCKET_SIZE)}`);
+      }
     },
     formatSize(size) {
       const i = Math.floor(Math.log(size) / Math.log(1024));
@@ -251,7 +306,7 @@ export default {
           },
           onError: (error) => {
             console.error("Upload failed:", error);
-            this.error = error.message;
+            this.errors.push(error.message);
             this.fileErrors.push(file.name);
           },
           onProgress: (bytesUploaded) => {
@@ -279,7 +334,9 @@ export default {
         startNextUpload();
       }
     }
-
+  },
+  created() {
+    this.fetchConfig();
   },
 };
 </script>
