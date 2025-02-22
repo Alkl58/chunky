@@ -6,7 +6,7 @@
 
 **Preview:** (will change)
 <p align="center">
-  <img style="margin: 4em 0" src="https://github.com/user-attachments/assets/3ffca933-4f8b-40c1-89b8-e36a860ee917" alt="chunky preview" />
+  <img style="margin: 4em 0; max-width: 600px;" src="https://github.com/user-attachments/assets/994859d9-54ae-4dcc-ad7c-c30e96354d74" alt="chunky preview" />
 </p>
 
 **Developmend Progress:**
