@@ -233,7 +233,7 @@ export default {
           return;
         }
 
-        if (this.config.MAX_BUCKET_SIZE !== 1 && this.config.MAX_BUCKET_SIZE < this.totalSize + file.size) {
+        if (this.config.MAX_BUCKET_SIZE !== -1 && this.config.MAX_BUCKET_SIZE < this.totalSize + file.size) {
           console.log("Bucket is too big!");
           bucketTooBig += 1;
           return;

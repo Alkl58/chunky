@@ -16,6 +16,7 @@
 - [x] Resumable download
 - [x] Multiple file upload (buckets)
 - [x] Multiple file download (zip)
+- [x] Max File / Bucket size option
 - [x] Light / Dark Mode
 - [ ] File preview
 - [ ] Gallery view
