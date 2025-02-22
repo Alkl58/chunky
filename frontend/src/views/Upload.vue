@@ -15,6 +15,28 @@
       <LoadingMessage :message="loadingMessage" />
       <ErrorMessage v-for="(error, index) in errors" :key="index" :message="error" />
 
+      <div v-if="authRequired" class="grid grid-rows-2 gap-4 pt-2">
+        <div class="flex">
+          <span
+            class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border rounded-e-0 border-gray-300 border-e-0 rounded-s-md dark:bg-neutral-600 dark:text-neutral-300 dark:border-neutral-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-lock">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" />
+              <path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />
+              <path d="M8 11v-4a4 4 0 1 1 8 0v4" />
+            </svg>
+          </span>
+          <input v-model="uploadPassword" type="text" id="bucket-password"
+            class="rounded-none rounded-e-lg bg-gray-50 border text-gray-900 focus:ring-pink-500 focus:border-pink-500 block flex-1 min-w-0 w-full text-sm border-neutral-300 p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500"
+            placeholder="Password" />
+        </div>
+        <button
+          class="font-medium w-full text-base px-4 bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded min-h-[44px]"
+          @click="fetchConfig">Submit</button>
+      </div>
+
       <!-- Success -->
       <div v-if="bucketUrl" class="flex rounded bg-lime-500 text-lime-900 min-h-[48px] mb-4">
         <div class="self-center p-2">
@@ -42,7 +64,7 @@
       </div>
 
       <!-- File Input -->
-      <div v-if="config" class="flex flex-col sm:flex-row gap-2">
+      <div v-if="config && !authRequired" class="flex flex-col sm:flex-row gap-2">
         <input
           class="w-full text-gray-500 dark:text-white font-medium text-base bg-gray-100 dark:bg-neutral-700 file:cursor-pointer cursor-pointer file:border-0 file:py-2.5 file:px-4 file:mr-4 file:bg-pink-400 file:hover:bg-pink-500 file:text-white rounded"
           type="file" @change="addFilesToList" multiple />
@@ -54,7 +76,7 @@
       </div>
 
       <!-- Settings -->
-      <div v-if="config" class="flex justify-center pt-2">
+      <div v-if="config && !authRequired" class="flex justify-center pt-2">
         <button class="flex content-center" @click="showSettings = !showSettings">
           Settings
           <span v-if="showSettings" class="self-center">
@@ -140,7 +162,7 @@
             <div class="flex items-center gap-2">
               <div class="grid gap-1">
                 <h4 class="text-sm font-semibold leading-snug">{{ file.name }} <small>({{ formatSize(file.size)
-                    }})</small></h4>
+                }})</small></h4>
               </div>
             </div>
             <!-- To-Do: Add Delete Button -->
@@ -175,6 +197,8 @@ export default {
   },
   data() {
     return {
+      authRequired: false,
+      uploadPassword: null,
       uploading: false,
       filesToUpload: [],
       completedUploads: 0,
@@ -194,7 +218,16 @@ export default {
   methods: {
     fetchConfig() {
       this.loadingMessage = 'Fetching configuration...';
-      fetch('/api/config')
+      this.authRequired = false;
+      this.errors = [];
+
+      const passwordHeader = new Headers();
+      console.log("PW: " + this.uploadPassword);
+      if (this.uploadPassword) {
+        passwordHeader.append("chunky-auth", this.uploadPassword);
+      }
+
+      fetch('/api/config', { headers: passwordHeader })
         .then(response => {
           if (!response.ok) {
             throw new Error("Error fetching config: Network response was not ok");
@@ -205,6 +238,9 @@ export default {
           // Handle cases where the API might return an error string instead of an object
           if (typeof data === "string") {
             this.errors.push(data);
+            if (data == "Password required!") {
+              this.authRequired = true;
+            }
           } else {
             this.config = data;
           }
@@ -264,7 +300,12 @@ export default {
       return (size / Math.pow(1024, i)).toFixed(2);
     },
     async getBucketId() {
-      const response = await fetch("/api/generate-bucket");
+      const passwordHeader = new Headers();
+      if (this.uploadPassword) {
+        passwordHeader.append("chunky-auth", this.uploadPassword);
+      }
+
+      const response = await fetch("/api/generate-bucket", { headers: passwordHeader });
       const data = await response.json();
       return data;
     },
@@ -277,6 +318,12 @@ export default {
       this.totalUploaded = 0;
 
       const bucketData = await this.getBucketId();
+      if (bucketData === 'Password required!') {
+        // This should * not * happen
+        this.errors.push("This should not have happened! There is some auth issue!");
+        return;
+      }
+
       const bucketId = bucketData['bucketId'];
       const bucketToken = bucketData['token'];
 
@@ -333,7 +380,7 @@ export default {
       for (let i = 0; i < MAX_PARALLEL_UPLOADS; i++) {
         startNextUpload();
       }
-    }
+    },
   },
   created() {
     this.fetchConfig();

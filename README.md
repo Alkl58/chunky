@@ -23,7 +23,7 @@
 - [x] Bucket / file expiration
 - [ ] One-time downloads
 - [ ] Admin Page
-- [ ] Upload Password / tokens
+- [x] Upload Password
 - [x] Bucket Password
 - [ ] File encryption (Client side?)
 - [ ] Localization (languages)

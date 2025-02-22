@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const config = require('../config');
 
+const checkUploadPassword = require("../middleware/authMiddleware");
 const { getBucketFiles, getBucketPassword } = require('../utils/fileUtils');
 const { UPLOAD_DIRECTORY } = require('../config');
 
@@ -37,7 +38,7 @@ router.get('/api/bucket/:bucketId', (req, res) => {
     });
 });
 
-router.get('/api/generate-bucket', (req, res) => {
+router.get('/api/generate-bucket', [checkUploadPassword], (req, res) => {
     var bucketId = crypto.randomUUID();
     while (fs.existsSync(path.join(UPLOAD_DIRECTORY, bucketId))) {
         // Highly unlikely
@@ -49,7 +50,7 @@ router.get('/api/generate-bucket', (req, res) => {
     res.json({token, bucketId});
 });
 
-router.get('/api/config', (req, res) => {
+router.get('/api/config', [checkUploadPassword], (req, res) => {
     res.json({
         MAX_FILE_SIZE: config.MAX_FILE_SIZE,
         MAX_BUCKET_SIZE: config.MAX_BUCKET_SIZE,
