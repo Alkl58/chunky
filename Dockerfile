@@ -4,9 +4,10 @@ ENV UPLOAD_DIRECTORY=/data
 
 WORKDIR /app
 
-ADD *.js package.json package-lock.json README.md /app/
+ADD *.js package.json package-lock.json /app/
 
 ADD frontend /app/frontend
+ADD middleware /app/middleware
 ADD public /app/public
 ADD routes /app/routes
 ADD utils /app/utils
