@@ -85,7 +85,6 @@ async function deleteExpiredBuckets() {
 
     const expired = await checkIfBucketIsExpired(bucket.name);
     if (!expired) {
-      console.log(`Bucket: ${bucket.name} not expired!`);
       continue;
     }
 
