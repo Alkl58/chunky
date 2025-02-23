@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-screen dark:bg-neutral-900 dark:text-white">
-    <div class="m-auto">
+    <div class="m-auto w-[100%] sm:w-[80%] md:w-[50%] lg:w-[40%] xl:w-[30%] 2xl:w-[25%]">
       <div class="flex justify-center pb-4">
         <div class="text-center">
           <div class="flex justify-center">
@@ -64,7 +64,7 @@
             <div class="flex items-center gap-2">
               <div class="grid gap-1">
                 <h4 class="text-sm font-semibold leading-snug break-all">{{ file.metadata.filename }}</h4>
-                <h5 class="text-neutral-300 text-xs font-normal leading-4">{{ formatSize(file.size) }}</h5>
+                <h5 class="text-neutral-600 dark:text-neutral-300 text-xs font-normal leading-4">{{ formatSize(file.size) }}</h5>
               </div>
             </div>
             <a class="font-medium p-2 text-base bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded"

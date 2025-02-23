@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-screen dark:bg-neutral-900 dark:text-white">
-    <div class="m-auto">
+    <div class="m-auto w-[100%] sm:w-[80%] md:w-[50%] lg:w-[40%] xl:w-[30%] 2xl:w-[25%]">
       <!-- Branding -->
       <div class="flex justify-center pb-4">
         <div class="text-center">
@@ -161,7 +161,7 @@
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
               <div class="grid gap-1">
-                <h4 class="text-sm font-semibold leading-snug">{{ file.name }} <small>({{ formatSize(file.size)
+                <h4 class="text-sm font-semibold leading-snug break-all">{{ file.name }} <small>({{ formatSize(file.size)
                 }})</small></h4>
               </div>
             </div>
