@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
 
+const thumbnailRouter = require('./routes/thumbnail');
 const downloadRouter = require('./routes/download');
 const uploadRouter = require('./routes/upload');
 const apiRouter = require('./routes/api');
@@ -14,8 +15,9 @@ const HOST = process.env.HOST || '0.0.0.0';
 const PORT = process.env.PORT || 3000;
 
 const app = express();
-app.use(cors());
 
+app.use(cors());
+app.use(thumbnailRouter);
 app.use(downloadRouter);
 app.use(uploadRouter);
 app.use(apiRouter);

@@ -11,9 +11,9 @@
       </div>
 
       <!-- Loading and error states -->
-      <LoadingMessage :message="loadingMessage"/>
+      <LoadingMessage :message="loadingMessage" />
 
-      <ErrorMessage :message="error"/>
+      <ErrorMessage :message="error" />
 
       <div v-if="authRequired && !bucketData" class="grid grid-rows-2 gap-4 pt-2">
         <div class="flex">
@@ -44,27 +44,37 @@
           <div class="rounded bg-gray-100 dark:bg-neutral-800 flex p-2">
             <p class="self-center pr-2">Download all:</p>
             <a class="font-medium p-2 text-base bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded"
-            :href="`/download-zip/${bucketId}${password ? `?p=${password}` : ''}`" target="_blank">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-              class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-zip">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-              <path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" />
-              <path d="M16 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" />
-              <path d="M12 15v6" />
-              <path d="M5 15h3l-3 6h3" />
-            </svg></a>
+              :href="`/download-zip/${bucketId}${password ? `?p=${password}` : ''}`" target="_blank">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-zip">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                <path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" />
+                <path d="M16 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" />
+                <path d="M12 15v6" />
+                <path d="M5 15h3l-3 6h3" />
+              </svg></a>
           </div>
         </div>
+
+        <!-- Image Gallery -->
+        <div v-if="imageFiles.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
+          <a v-for="file in imageFiles" :key="file.id" :href="`/download/${bucketId}/${file.id}`" target="_blank">
+            <img class="rounded-lg w-full h-96 sm:h-60 lg:h-32  object-cover md:hover:scale-125 transition"
+              :src="`/thumbnail/${bucketId}/${file.id}`" :alt="file.metadata.filename">
+          </a>
+        </div>
+
         <!-- Files -->
-        <div v-for="file in bucketData.files" :key="file.id"
+        <div v-for="file in otherFiles" v-if="otherFiles.length > 0" :key="file.id"
           class="w-full grid gap-1 mb-1 rounded bg-gray-100 dark:bg-neutral-800 p-2">
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
               <div class="grid gap-1">
                 <h4 class="text-sm font-semibold leading-snug break-all">{{ file.metadata.filename }}</h4>
-                <h5 class="text-neutral-600 dark:text-neutral-300 text-xs font-normal leading-4">{{ formatSize(file.size) }}</h5>
+                <h5 class="text-neutral-600 dark:text-neutral-300 text-xs font-normal leading-4">{{
+                  formatSize(file.size) }}</h5>
               </div>
             </div>
             <a class="font-medium p-2 text-base bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded"
@@ -92,7 +102,7 @@ export default {
   name: "Bucket",
   components: {
     ErrorMessage,
-    LoadingMessage
+    LoadingMessage,
   },
   data() {
     return {
@@ -103,6 +113,8 @@ export default {
       error: null,
       authRequired: false,
       password: null,
+      imageFiles: [],
+      otherFiles: [],
     };
   },
 
@@ -132,6 +144,7 @@ export default {
           } else {
             this.bucketData = data;
             this.error = null;
+            this.categorizeFiles();
           }
         })
         .catch(err => {
@@ -145,6 +158,14 @@ export default {
       // Convert bytes into a human-readable format
       const i = Math.floor(Math.log(size) / Math.log(1024));
       return (size / Math.pow(1024, i)).toFixed(2) + " " + ["B", "kB", "MB", "GB", "TB"][i];
+    },
+    categorizeFiles() {
+      if (!this.bucketData || !this.bucketData.files) return;
+      this.imageFiles = this.bucketData.files.filter(file => this.isImage(file.metadata.filename));
+      this.otherFiles = this.bucketData.files.filter(file => !this.isImage(file.metadata.filename));
+    },
+    isImage(filename) {
+      return /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
     },
   },
   created() {
