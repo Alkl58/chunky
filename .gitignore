@@ -5,11 +5,8 @@ node_modules/
 .env
 
 # Build directory / files for frontend
-/public/*.html
-/public/*.png
-/public/*.ico
-/public/*.css
-/public/assets/
+/public/*
+!/public/.gitignore
 
 # Upload directory
 /uploads/*

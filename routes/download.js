@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const archiver = require('archiver');
-const { getBucketPassword } = require('../utils/fileUtils');
+const { getBucketPassword, validUUID } = require('../utils/fileUtils');
 const { UPLOAD_DIRECTORY } = require('../config');
 
 const downloadRouter = express.Router();
@@ -12,6 +12,10 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
   const { bucketId, fileId } = req.params;
   const filePath = path.join(UPLOAD_DIRECTORY, bucketId, fileId);
   const metaFilePath = filePath + '.json';
+
+  if (!validUUID(bucketId)) {
+    return res.status(404).send('Not a valid bucket-id');
+  }
 
   if (!fs.existsSync(filePath) || fileId.toLowerCase().endsWith('.json')) {
     return res.status(404).send('File not found');
@@ -68,7 +72,7 @@ downloadRouter.get('/download-zip/:bucketId', (req, res) => {
   const password = req.query.p;
   const folderPath = path.join(UPLOAD_DIRECTORY, bucketId);
 
-  if (bucketId.length !== 36) {
+  if (!validUUID(bucketId)) {
     return res.status(404).send("Not a valid bucket-id");
   }
 

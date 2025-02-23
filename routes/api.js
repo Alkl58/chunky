@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const config = require('../config');
 const checkUploadPassword = require("../middleware/authMiddleware");
-const { getBucketFiles, getBucketPassword } = require('../utils/fileUtils');
+const { getBucketFiles, getBucketPassword, validUUID } = require('../utils/fileUtils');
 const { UPLOAD_DIRECTORY } = require('../config');
 
 const router = express.Router();
@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/api/bucket/:bucketId', (req, res) => {
   const bucketId = req.params.bucketId;
 
-  if (bucketId.length !== 36) {
+  if (!validUUID(bucketId)) {
     return res.json("Not a valid bucket-id");
   }
 
