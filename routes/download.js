@@ -22,11 +22,15 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
   }
 
   let contentType = 'application/octet-stream';
+  let fileName = fileId;
   if (fs.existsSync(metaFilePath)) {
     try {
       const metaData = JSON.parse(fs.readFileSync(metaFilePath, 'utf8'));
       if (metaData.metadata.filetype) {
         contentType = metaData.metadata.filetype;
+      }
+      if (metaData.metadata.filename) {
+        fileName = metaData.metadata.filename;
       }
     } catch (error) {
       console.error('Error reading metadata file:', error);
@@ -51,7 +55,8 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
       'Content-Range': `bytes ${start}-${end}/${fileSize}`,
       'Accept-Ranges': 'bytes',
       'Content-Length': end - start + 1,
-      'Content-Type': contentType
+      'Content-Type': contentType,
+      'Content-Disposition': `filename="${fileName}"`,
     });
 
     const fileStream = fs.createReadStream(filePath, { start, end });
@@ -60,7 +65,8 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
     res.set({
       'Content-Length': fileSize,
       'Content-Type': contentType,
-      'Accept-Ranges': 'bytes'
+      'Accept-Ranges': 'bytes',
+      'Content-Disposition': `filename="${fileName}"`,
     });
 
     fs.createReadStream(filePath).pipe(res);

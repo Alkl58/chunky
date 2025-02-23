@@ -19,7 +19,7 @@
 - [x] Max File / Bucket size option
 - [x] Light / Dark Mode
 - [ ] File preview
-- [ ] Gallery view
+- [x] Gallery view
 - [x] Bucket / file expiration
 - [ ] One-time downloads
 - [ ] Admin Page
