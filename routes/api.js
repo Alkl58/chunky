@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const config = require('../config');
 const checkUploadPassword = require("../middleware/authMiddleware");
-const { getBucketFiles, getBucketPassword, validUUID } = require('../utils/fileUtils');
+const { getBucketFiles, getBucketPassword, validUUID, initializeBucket } = require('../utils/fileUtils');
 const { UPLOAD_DIRECTORY } = require('../config');
 
 const router = express.Router();
@@ -37,7 +37,9 @@ router.get('/api/bucket/:bucketId', (req, res) => {
   });
 });
 
-router.get('/api/generate-bucket', [checkUploadPassword], (req, res) => {
+// Creats a random uuid for the bucket
+// The uuid get's signed, so that only people with the correct token can modify the bucket
+router.get('/api/get-bucket-token', [checkUploadPassword], (req, res) => {
   var bucketId = crypto.randomUUID();
   while (fs.existsSync(path.join(UPLOAD_DIRECTORY, bucketId))) {
     // Highly unlikely
@@ -47,6 +49,29 @@ router.get('/api/generate-bucket', [checkUploadPassword], (req, res) => {
   // Create signed token
   var token = jwt.sign({ data: bucketId }, process.env.PRIVATE_KEY, { expiresIn: '12h' });
   res.json({ token, bucketId });
+});
+
+router.post('/api/update-bucket', [checkUploadPassword], (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: "Token required!" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.PRIVATE_KEY);
+    const bucketId = decoded.data;
+
+    // Create bucket json
+    if (initializeBucket(bucketId)) {
+      return res.status(200).json({ message: "Success!" });
+    }
+    return res.status(500).json({ message: "Something went wrong! Bucket may be still accessible. Please contact server admin!" });
+  } catch (err) {
+    console.error(err);
+  }
+
+  return res.status(500).json({ message: "Something went wrong!" });
 });
 
 router.get('/api/config', [checkUploadPassword], (req, res) => {

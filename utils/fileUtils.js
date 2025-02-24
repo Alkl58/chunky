@@ -29,43 +29,87 @@ function moveToBucketFolder(bucketId, fileId) {
   }
 }
 
-function getBucketFiles(bucketId) {
+function initializeBucket(bucketId) {
   const bucketFolder = path.join(UPLOAD_DIRECTORY, bucketId);
   const bucketFiles = [];
 
+  let bucketPassword = null;
+  let expiration = null;
+
+  // If folder doesn't exist, something seriously went wrong
+  if (!fs.existsSync(bucketFolder)) {
+    console.error("Tried to initialize bucket, however bucket folder doesn't exist. Could be file permission issues or a malicious user.");
+    return false;
+  }
+
   fs.readdirSync(bucketFolder).forEach(file => {
-    if (!file.endsWith('.json')) {
+    if (!file.endsWith('.json') || file === 'bucket.json') {
       return;
     }
 
     const json = JSON.parse(fs.readFileSync(path.join(bucketFolder, file), 'utf8'));
 
-    // delete information
-    delete json['creation_date'];
+    if (json['metadata']['password']) {
+      bucketPassword = json['metadata']['password'];
+    }
+
+    expiration = json['metadata']['expiration'];
+
+    delete json['offset'];
+    delete json['metadata']['bucketId'];
+    delete json['metadata']['expiration'];
     delete json['metadata']['password'];
 
     bucketFiles.push(json);
   });
 
-  return bucketFiles;
+  let bucketData = {
+    ...(bucketPassword !== null && { password: bucketPassword }),
+    expiration: expiration,
+    files: bucketFiles,
+  };
+
+  const bucketJSON = JSON.stringify(bucketData, null, 2);
+
+  try {
+    fs.writeFileSync(path.join(bucketFolder, 'bucket.json'), bucketJSON, 'utf8');
+    console.debug(`Successfully initialized Bucket ${bucketId}`);
+    return true;
+  } catch (error) {
+    console.error('Error writing bucket data to file', error);
+  }
+
+  return false;
+}
+
+function getBucketData(bucketId, jsonDataName) {
+  const bucketFolder = path.join(UPLOAD_DIRECTORY, bucketId);
+  const bucketJSONFile = path.join(bucketFolder, 'bucket.json');
+
+  if (!fs.existsSync(bucketJSONFile)) {
+    console.error(`Bucket json file not found! Trying to reinitialize...`);
+
+    if (!initializeBucket(bucketId)) {
+      return null;
+    }
+  }
+
+  try {
+    const json = JSON.parse(fs.readFileSync(bucketJSONFile, 'utf8'));
+    return json[jsonDataName];
+  } catch (err) {
+    console.error(`Error reading bucket json file: ${err}`);
+  }
+
+  return null;
+}
+
+function getBucketFiles(bucketId) {
+  return getBucketData(bucketId, 'files');
 }
 
 function getBucketPassword(bucketId) {
-  const bucketFolder = path.join(UPLOAD_DIRECTORY, bucketId);
-
-  var password = null;
-  fs.readdirSync(bucketFolder).forEach(file => {
-    if (!file.endsWith('.json')) {
-      return;
-    }
-
-    const json = JSON.parse(fs.readFileSync(path.join(bucketFolder, file), 'utf8'))['metadata'];
-    if (json['password']) {
-      password = json['password'];
-    }
-  });
-
-  return password;
+  return getBucketData(bucketId, 'password');
 }
 
-module.exports = { moveToBucketFolder, getBucketFiles, getBucketPassword, validUUID };
+module.exports = { moveToBucketFolder, getBucketFiles, getBucketPassword, validUUID, initializeBucket };

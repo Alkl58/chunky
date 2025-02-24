@@ -305,9 +305,36 @@ export default {
         passwordHeader.append("chunky-auth", this.uploadPassword);
       }
 
-      const response = await fetch("/api/generate-bucket", { headers: passwordHeader });
+      const response = await fetch("/api/get-bucket-token", { headers: passwordHeader });
       const data = await response.json();
       return data;
+    },
+    async updateBucket(bucketToken, bucketId) {
+      const headers = new Headers();
+      headers.append('Content-Type', 'application/json');
+      if (this.uploadPassword) {
+        headers.append('chunky-auth', this.uploadPassword);
+      }
+
+      try {
+        const response = await fetch('/api/update-bucket', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ token: bucketToken })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          this.uploading = false;
+        } else {
+          this.errors.push(`Error: ${data.message}`);
+        }
+
+        this.bucketUrl = window.location.origin + `/bucket/${bucketId}`;
+      } catch (error) {
+        this.errors.push('Failed to submit bucket metadata.');
+        console.error('Error submitting data:', error);
+      }
     },
     async uploadFiles() {
       if (this.filesToUpload.length === 0) return;
@@ -364,8 +391,7 @@ export default {
           onSuccess: () => {
             this.completedUploads++;
             if (this.completedUploads === this.filesToUpload.length) {
-              this.uploading = false;
-              this.bucketUrl = window.location.origin + `/bucket/${bucketId}`;
+              this.updateBucket(bucketToken, bucketId);
             }
             activeUploads--;
             startNextUpload(); // Start a new upload after one finishes
