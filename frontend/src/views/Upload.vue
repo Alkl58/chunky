@@ -97,7 +97,7 @@
           </span>
         </button>
       </div>
-      <div v-show="showSettings"
+      <div v-if="config && !authRequired" v-show="showSettings"
         class="grid grid-rows-2 md:grid-cols-2 md:grid-rows-1 gap-2 bg-gray-100 dark:bg-neutral-800 p-2 mt-1 rounded">
         <!-- Bucket password -->
         <div>
@@ -138,14 +138,12 @@
             </span>
             <select v-model="expirationTime" id="bucket-expiration"
               class="bg-gray-50 border h-[42px] border-gray-300 text-gray-900 text-sm rounded-e-lg border-s-gray-100 dark:border-s-neutral-700 border-s-2 focus:ring-pink-500 focus:border-pink-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500">
-              <option value="1h">1 Hour</option>
-              <option value="6h">6 Hours</option>
-              <option value="1d">1 Day</option>
-              <option value="3d">3 Days</option>
-              <option value="1w">1 Week</option>
-              <option value="2w">2 Weeks</option>
-              <option value="4w">4 Weeks</option>
-              <option value="8w">8 Weeks</option>
+              <option v-for="expiration in config.BUCKET_EXPIRATION" :key="expiration" :value="expiration"
+                :selected="expiration === config.BUCKET_EXPIRATION_DEFAULT">
+                <span v-if="/[hdwm]$/.test(expiration)">
+                  {{ $t(`expirations.${getExpirationUnit(expiration)}`, getExpirationValue(expiration)) }}
+                </span>
+              </option>
             </select>
           </div>
         </div>
@@ -213,6 +211,7 @@ export default {
       totalUploaded: 0,
       password: null,
       showSettings: false,
+      expirations: [],
       expirationTime: '4w',
       loadingMessage: null,
       config: null,
@@ -248,6 +247,7 @@ export default {
             }
           } else {
             this.config = data;
+            this.expirations = this.config.BUCKET_EXPIRATION;
           }
         })
         .catch(err => {
@@ -256,6 +256,19 @@ export default {
         .finally(() => {
           this.loadingMessage = null;
         });
+    },
+    getExpirationValue(value) {
+      const match = value.match(/^(\d+)([hdwm])$/);
+      if (!match) return value; // fallback in case of unexpected format
+
+      const amount = parseInt(match[1], 10);
+      return amount;
+    },
+    getExpirationUnit(expiration) {
+      return expiration.slice(-1) === 'h' ? 'hour' :
+        expiration.slice(-1) === 'd' ? 'day' :
+          expiration.slice(-1) === 'w' ? 'week' :
+            'month';
     },
     addFilesToList(event) {
       if (!this.config) return;

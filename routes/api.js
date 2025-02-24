@@ -78,6 +78,8 @@ router.get('/api/config', [checkUploadPassword], (req, res) => {
   res.json({
     MAX_FILE_SIZE: config.MAX_FILE_SIZE,
     MAX_BUCKET_SIZE: config.MAX_BUCKET_SIZE,
+    BUCKET_EXPIRATION: config.BUCKET_EXPIRATION,
+    BUCKET_EXPIRATION_DEFAULT: config.BUCKET_EXPIRATION_DEFAULT,
   });
 });
 
