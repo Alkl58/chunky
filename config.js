@@ -4,6 +4,9 @@ module.exports = {
   // Required
   PRIVATE_KEY: process.env.PRIVATE_KEY,
 
+  // Enables admin page
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ?? null,
+
   // Absolute path (example: /data for docker)
   UPLOAD_DIRECTORY: path.resolve(process.env.UPLOAD_DIRECTORY || path.join(__dirname, 'uploads')),
 

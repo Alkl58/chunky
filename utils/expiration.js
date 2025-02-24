@@ -92,4 +92,4 @@ async function deleteExpiredBuckets() {
   }
 }
 
-module.exports = { deleteExpiredBuckets };
+module.exports = { deleteExpiredBuckets, deleteFolder };

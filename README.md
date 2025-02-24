@@ -22,7 +22,7 @@
 - [x] Gallery view
 - [x] Bucket / file expiration
 - [ ] One-time downloads
-- [ ] Admin Page
+- [x] Admin Page
 - [x] Upload Password
 - [x] Bucket Password
 - [ ] File encryption (Client side?)

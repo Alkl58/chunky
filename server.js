@@ -6,6 +6,7 @@ const cron = require('node-cron');
 const thumbnailRouter = require('./routes/thumbnail');
 const downloadRouter = require('./routes/download');
 const uploadRouter = require('./routes/upload');
+const adminRouter = require('./routes/admin');
 const apiRouter = require('./routes/api');
 const webRouter = require('./routes/web');
 
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use(thumbnailRouter);
 app.use(downloadRouter);
 app.use(uploadRouter);
+app.use(adminRouter);
 app.use(apiRouter);
 app.use(webRouter); // Web Paths frontend
 

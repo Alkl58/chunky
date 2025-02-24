@@ -33,6 +33,7 @@ function initializeBucket(bucketId) {
   const bucketFolder = path.join(UPLOAD_DIRECTORY, bucketId);
   const bucketFiles = [];
 
+  let bucketSize = 0;
   let bucketPassword = null;
   let expiration = null;
   let creationDate = null;
@@ -54,6 +55,7 @@ function initializeBucket(bucketId) {
       bucketPassword = json['metadata']['password'];
     }
 
+    bucketSize += json['size'];
     expiration = json['metadata']['expiration'];
     creationDate = json['creation_date'];
 
@@ -68,6 +70,7 @@ function initializeBucket(bucketId) {
 
   let bucketData = {
     ...(bucketPassword !== null && { password: bucketPassword }),
+    bucketSize: bucketSize,
     expiration: expiration,
     creationDate: creationDate,
     files: bucketFiles,
@@ -116,4 +119,8 @@ function getBucketPassword(bucketId) {
   return getBucketData(bucketId, 'password');
 }
 
-module.exports = { moveToBucketFolder, getBucketFiles, getBucketPassword, validUUID, initializeBucket };
+function getBucketSize(bucketId) {
+  return getBucketData(bucketId, 'bucketSize');
+}
+
+module.exports = { moveToBucketFolder, getBucketFiles, getBucketPassword, getBucketSize, validUUID, initializeBucket };
