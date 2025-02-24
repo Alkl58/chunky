@@ -28,31 +28,30 @@ function hasExpired(creationDate, expiration) {
 }
 
 async function checkIfBucketIsExpired(bucketId) {
-  const bucketFolder = path.join(UPLOAD_DIRECTORY, bucketId);
+  const bucketJSONFile = path.join(UPLOAD_DIRECTORY, bucketId, 'bucket.json');
 
   try {
-    const files = await fs.promises.readdir(bucketFolder);
+    // Check if the file exists
+    await fs.promises.access(bucketJSONFile, fs.constants.F_OK);
 
-    for (const file of files) {
-      if (!file.endsWith('.json')) {
-        continue;
-      }
+    // Read and parse the file
+    const data = await fs.promises.readFile(bucketJSONFile, 'utf8');
+    const json = JSON.parse(data);
 
-      const filePath = path.join(bucketFolder, file);
-      const data = await fs.promises.readFile(filePath, 'utf8');
-      const json = JSON.parse(data);
+    const expiration = json['expiration'];
+    const creationDate = json['creationDate'];
 
-      const expiration = json['metadata']['expiration'];
-      const creationDate = json['creation_date'];
-
-      if (expiration === 'never') {
-        return false;
-      }
-
-      return hasExpired(creationDate, expiration);
+    if (expiration === 'never') {
+      return false;
     }
-  } catch (error) {
-    console.error('Error reading bucket folder:', error);
+
+    return hasExpired(creationDate, expiration);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      console.error(`Bucket ${bucketId} json file doesn't exist!`);
+    } else {
+      console.error('Error reading bucket file:', err);
+    }
   }
 
   return false;

@@ -35,6 +35,7 @@ function initializeBucket(bucketId) {
 
   let bucketPassword = null;
   let expiration = null;
+  let creationDate = null;
 
   // If folder doesn't exist, something seriously went wrong
   if (!fs.existsSync(bucketFolder)) {
@@ -54,8 +55,10 @@ function initializeBucket(bucketId) {
     }
 
     expiration = json['metadata']['expiration'];
+    creationDate = json['creation_date'];
 
     delete json['offset'];
+    delete json['creation_date'];
     delete json['metadata']['bucketId'];
     delete json['metadata']['expiration'];
     delete json['metadata']['password'];
@@ -66,6 +69,7 @@ function initializeBucket(bucketId) {
   let bucketData = {
     ...(bucketPassword !== null && { password: bucketPassword }),
     expiration: expiration,
+    creationDate: creationDate,
     files: bucketFiles,
   };
 
