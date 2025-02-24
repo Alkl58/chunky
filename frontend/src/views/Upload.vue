@@ -30,11 +30,11 @@
           </span>
           <input v-model="uploadPassword" type="text" id="bucket-password"
             class="rounded-none rounded-e-lg bg-gray-50 border text-gray-900 focus:ring-pink-500 focus:border-pink-500 block flex-1 min-w-0 w-full text-sm border-neutral-300 p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500"
-            placeholder="Password" />
+            :placeholder="$t('password') " />
         </div>
         <button
           class="font-medium w-full text-base px-4 bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded min-h-[44px]"
-          @click="fetchConfig">Submit</button>
+          @click="fetchConfig">{{ $t('submit') }}</button>
       </div>
 
       <!-- Success -->
@@ -47,7 +47,7 @@
             <path d="M5 12l5 5l10 -10" />
           </svg>
         </div>
-        <p class="self-center">All files uploaded! <a :href="bucketUrl" target="_blank">{{ bucketUrl }}</a></p>
+        <p class="self-center">{{ $t('uploadSuccess') }} <a :href="bucketUrl" target="_blank">{{ bucketUrl }}</a></p>
       </div>
 
       <!-- Progress -->
@@ -60,7 +60,7 @@
             <path d="M12 3a9 9 0 1 0 9 9" />
           </svg>
         </div>
-        <p class="self-center">Upload in progress! {{ (totalUploaded / totalSize * 100 || 0).toFixed(2) }}%</p>
+        <p class="self-center">{{ $t('uploadInProgress') }} {{ (totalUploaded / totalSize * 100 || 0).toFixed(2) }}%</p>
       </div>
 
       <!-- File Input -->
@@ -78,7 +78,7 @@
       <!-- Settings -->
       <div v-if="config && !authRequired" class="flex justify-center pt-2">
         <button class="flex content-center" @click="showSettings = !showSettings">
-          Settings
+          {{ $t('settings') }}
           <span v-if="showSettings" class="self-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
               class="icon icon-tabler icons-tabler-filled icon-tabler-caret-up">
@@ -101,7 +101,8 @@
         class="grid grid-rows-2 md:grid-cols-2 md:grid-rows-1 gap-2 bg-gray-100 dark:bg-neutral-800 p-2 mt-1 rounded">
         <!-- Bucket password -->
         <div>
-          <label for="bucket-password" class="block mb-2 font-medium text-gray-900 dark:text-white">Password</label>
+          <label for="bucket-password" class="block mb-2 font-medium text-gray-900 dark:text-white">{{ $t('password')
+            }}</label>
           <div class="flex">
             <span
               class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border rounded-e-0 border-gray-300 border-e-0 rounded-s-md dark:bg-neutral-600 dark:text-neutral-300 dark:border-neutral-600">
@@ -116,13 +117,14 @@
             </span>
             <input v-model="password" type="text" id="bucket-password"
               class="rounded-none rounded-e-lg bg-gray-50 border h-[42px] text-gray-900 focus:ring-pink-500 focus:border-pink-500 block flex-1 min-w-0 w-full text-sm border-neutral-300 p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500"
-              placeholder="optional">
+              :placeholder="$t('optional')">
           </div>
         </div>
 
         <!-- Expiration -->
         <div>
-          <label for="bucket-expiration" class="block mb-2 font-medium text-gray-900 dark:text-white">Expiration</label>
+          <label for="bucket-expiration" class="block mb-2 font-medium text-gray-900 dark:text-white">{{
+            $t('expiration') }}</label>
           <div class="flex">
             <span
               class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border rounded-e-0 border-gray-300 border-e-0 rounded-s-md dark:bg-neutral-600 dark:text-neutral-300 dark:border-neutral-600">
@@ -161,8 +163,9 @@
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
               <div class="grid gap-1">
-                <h4 class="text-sm font-semibold leading-snug break-all">{{ file.name }} <small>({{ formatSize(file.size)
-                }})</small></h4>
+                <h4 class="text-sm font-semibold leading-snug break-all">{{ file.name }} <small>({{
+                    formatSize(file.size)
+                    }})</small></h4>
               </div>
             </div>
             <!-- To-Do: Add Delete Button -->
@@ -237,9 +240,11 @@ export default {
         .then(data => {
           // Handle cases where the API might return an error string instead of an object
           if (typeof data === "string") {
-            this.errors.push(data);
             if (data == "Password required!") {
               this.authRequired = true;
+              this.errors.push(this.$t('passwordRequired'));
+            } else {
+              this.errors.push(data);
             }
           } else {
             this.config = data;
@@ -262,8 +267,6 @@ export default {
       let filesTooBig = 0;
       let bucketTooBig = 0;
       files.forEach(file => {
-        console.log("Size: " + file.size);
-        console.log("Size: " + this.formatSize(file.size));
         if (this.config.MAX_FILE_SIZE !== -1 && this.config.MAX_FILE_SIZE < file.size) {
           console.log("File: " + file.name + " is too big!");
           filesTooBig += 1;
@@ -282,11 +285,11 @@ export default {
       });
 
       if (filesTooBig) {
-        this.errors.push(`${filesTooBig} file(s) got removed. Max file size is ${this.formatSize(this.config.MAX_FILE_SIZE)}`);
+        this.errors.push(this.$t('errorMaxFileSize', { count: filesTooBig, maxSize: this.formatSize(this.config.MAX_FILE_SIZE) }));
       }
 
       if (bucketTooBig) {
-        this.errors.push(`${bucketTooBig} file(s) got removed. Max bucket size is ${this.formatSize(this.config.MAX_BUCKET_SIZE)}`);
+        this.errors.push(this.$t('errorMaxBucketSize', { count: bucketTooBig, maxSize: this.formatSize(this.config.MAX_BUCKET_SIZE) }));
       }
     },
     formatSize(size) {

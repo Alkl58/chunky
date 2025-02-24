@@ -30,11 +30,11 @@
           </span>
           <input v-model="password" type="text" id="bucket-password"
             class="rounded-none rounded-e-lg bg-gray-50 border text-gray-900 focus:ring-pink-500 focus:border-pink-500 block flex-1 min-w-0 w-full text-sm border-neutral-300 p-2.5 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500"
-            placeholder="Password" />
+            :placeholder="$t('password')" />
         </div>
         <button
           class="font-medium w-full text-base px-4 bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded min-h-[44px]"
-          @click="fetchBucket">Submit</button>
+          @click="fetchBucket">{{ $t('submit') }}</button>
       </div>
 
       <!-- Display bucket files once loaded -->
@@ -146,8 +146,10 @@ export default {
           if (typeof data === "string") {
             if (data == "Password required!") {
               this.authRequired = true;
+              this.error = this.$t('passwordRequired');
+            } else {
+              this.error = data;
             }
-            this.error = data;
           } else {
             this.bucketData = data;
             this.error = null;

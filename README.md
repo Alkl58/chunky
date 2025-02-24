@@ -26,7 +26,7 @@
 - [x] Upload Password
 - [x] Bucket Password
 - [ ] File encryption (Client side?)
-- [ ] Localization (languages)
+- [x] Localization support (languages)
 
 
 **Development:**
