@@ -257,6 +257,7 @@ export default {
       const files = Array.from(event.target.files);
       if (files.length === 0) return;
       this.errors = [];
+      this.filesToUpload = [];
 
       let filesTooBig = 0;
       let bucketTooBig = 0;
