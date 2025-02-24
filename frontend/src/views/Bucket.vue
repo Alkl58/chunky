@@ -40,7 +40,7 @@
       <!-- Display bucket files once loaded -->
       <div v-if="bucketData && bucketData.files && !loadingMessage && !error">
         <!-- ZIP Download -->
-        <div class="w-full pb-2 flex justify-end">
+        <div v-if="bucketData.files.length > 1" class="w-full pb-2 flex justify-end">
           <div class="rounded bg-gray-100 dark:bg-neutral-800 flex p-2">
             <p class="self-center pr-2">Download all:</p>
             <a class="font-medium p-2 text-base bg-pink-400 hover:bg-pink-500 disabled:bg-neutral-700 cursor-pointer text-white rounded"
