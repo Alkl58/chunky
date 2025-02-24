@@ -122,6 +122,13 @@ export default {
     fetchBucket() {
       this.loadingMessage = 'Loading bucket data...';
 
+      // Allow using password query parameter to avoid typing the password
+      const urlParams = new URLSearchParams(window.location.search);
+      const password = urlParams.get('p');
+      if (password) {
+        this.password = password;
+      }
+
       const passwordHeader = new Headers();
       if (this.password) {
         passwordHeader.append("chunky-bucket-auth", this.password);
