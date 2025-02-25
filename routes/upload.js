@@ -1,6 +1,6 @@
 const { Server, EVENTS } = require('@tus/server');
 const { FileStore } = require('@tus/file-store');
-const { verifyToken, verifyFileSize } = require('../middleware/uploadMiddleware');
+const { verifyToken, verifyFileSize, verifyExpiration } = require('../middleware/uploadMiddleware');
 const { moveToBucketFolder } = require('../utils/fileUtils');
 const { UPLOAD_DIRECTORY } = require('../config');
 const express = require('express');
@@ -19,7 +19,7 @@ uploadRouter.all('/api/upload/*', [verifyToken], (req, res) => {
   tusServer.handle(req, res)
 });
 
-uploadRouter.all('/api/upload', [verifyToken, verifyFileSize], (req, res) => {
+uploadRouter.all('/api/upload', [verifyToken, verifyFileSize, verifyExpiration], (req, res) => {
   tusServer.handle(req, res)
 });
 
