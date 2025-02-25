@@ -41,7 +41,7 @@ async function checkIfBucketIsExpired(bucketId) {
     const expiration = json['expiration'];
     const creationDate = json['creationDate'];
 
-    if (expiration === 'never') {
+    if (expiration === 'never' || expiration === 'onetime') {
       return false;
     }
 
@@ -92,4 +92,31 @@ async function deleteExpiredBuckets() {
   }
 }
 
-module.exports = { deleteExpiredBuckets, deleteFolder };
+function deleteOneTimeDownload(bucketId, fileId) {
+  const filePath = path.join(UPLOAD_DIRECTORY, bucketId, fileId);
+  const bucketJSONFile = path.join(UPLOAD_DIRECTORY, bucketId, 'bucket.json');
+
+  try {
+    // Delete specified one-time download file
+    fs.unlinkSync(filePath);
+    fs.unlinkSync(filePath + '.json');
+
+    const json = JSON.parse(fs.readFileSync(bucketJSONFile, 'utf8'));
+
+    // Filter entry
+    json.files = json.files.filter(file => file.id !== fileId);
+
+    if (json.files.length === 0) {
+      deleteFolder(bucketId);
+      return;
+    }
+
+    // Overwrite bucket.json
+    const bucketJSON = JSON.stringify(json, null, 2);
+    fs.writeFileSync(bucketJSONFile, bucketJSON, 'utf8');
+  } catch (err) {
+    console.error('Error deleting files:', err);
+  }
+}
+
+module.exports = { deleteExpiredBuckets, deleteFolder, deleteOneTimeDownload };

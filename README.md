@@ -21,7 +21,7 @@
 - [ ] File preview
 - [x] Gallery view
 - [x] Bucket / file expiration
-- [ ] One-time downloads
+- [x] One-time downloads
 - [x] Admin Page
 - [x] Upload Password
 - [x] Bucket Password

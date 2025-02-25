@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const archiver = require('archiver');
+const { deleteFolder, deleteOneTimeDownload } = require('../utils/expiration');
 const { getBucketPassword, validUUID } = require('../utils/fileUtils');
 const { UPLOAD_DIRECTORY } = require('../config');
 
@@ -12,6 +13,9 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
   const { bucketId, fileId } = req.params;
   const filePath = path.join(UPLOAD_DIRECTORY, bucketId, fileId);
   const metaFilePath = filePath + '.json';
+  let contentType = 'application/octet-stream';
+  let fileName = fileId;
+  let isOneTime = false;
 
   if (!validUUID(bucketId)) {
     return res.status(404).send('Not a valid bucket-id');
@@ -21,25 +25,19 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
     return res.status(404).send('File not found');
   }
 
-  let contentType = 'application/octet-stream';
-  let fileName = fileId;
-  if (fs.existsSync(metaFilePath)) {
-    try {
-      const metaData = JSON.parse(fs.readFileSync(metaFilePath, 'utf8'));
-      if (metaData.metadata.filetype) {
-        contentType = metaData.metadata.filetype;
-      }
-      if (metaData.metadata.filename) {
-        fileName = metaData.metadata.filename;
-      }
-    } catch (error) {
-      console.error('Error reading metadata file:', error);
-    }
+  try {
+    const metaData = JSON.parse(fs.readFileSync(metaFilePath, 'utf8'));
+    contentType = metaData.metadata.filetype || 'application/octet-stream';
+    fileName = metaData.metadata.filename || fileId;
+    isOneTime = metaData.metadata.expiration === 'onetime';
+  } catch (error) {
+    console.error('Error reading metadata file:', error);
   }
 
   const stat = fs.statSync(filePath);
   const fileSize = stat.size;
   const range = req.headers.range;
+  let rangeOptions = {};
 
   if (range) {
     const parts = range.replace(/bytes=/, '').split('-');
@@ -59,8 +57,7 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
       'Content-Disposition': `filename="${fileName}"`,
     });
 
-    const fileStream = fs.createReadStream(filePath, { start, end });
-    fileStream.pipe(res);
+    rangeOptions = { start, end };
   } else {
     res.set({
       'Content-Length': fileSize,
@@ -68,9 +65,16 @@ downloadRouter.get('/download/:bucketId/:fileId', (req, res) => {
       'Accept-Ranges': 'bytes',
       'Content-Disposition': `filename="${fileName}"`,
     });
-
-    fs.createReadStream(filePath).pipe(res);
   }
+
+  const fileStream = fs.createReadStream(filePath, rangeOptions);
+  fileStream.pipe(res);
+
+  fileStream.on('close', () => {
+    if (isOneTime) {
+      deleteOneTimeDownload(bucketId, fileId);
+    }
+  });
 });
 
 downloadRouter.get('/download-zip/:bucketId', (req, res) => {
@@ -103,10 +107,10 @@ downloadRouter.get('/download-zip/:bucketId', (req, res) => {
 
   // Create a ZIP archive and stream it
   const archive = archiver('zip', { zlib: { level: 9 } });
-
   archive.on('error', err => res.status(500).send({ error: err.message }));
   archive.pipe(res); // Stream archive to response
 
+  let isOneTime = false;
   fs.readdir(folderPath, (err, files) => {
     if (err) {
       return res.status(500).send('Error reading directory');
@@ -115,15 +119,23 @@ downloadRouter.get('/download-zip/:bucketId', (req, res) => {
     files.forEach(file => {
       const filePath = path.join(folderPath, file);
       if (fs.lstatSync(filePath).isFile() && !filePath.endsWith('.json')) {
-        // Get original filename
-        const json = JSON.parse(fs.readFileSync(filePath + '.json', 'utf8'));
-        const fileName = json['metadata']['filename'];
+        // Get file metadata
+        const metaData = JSON.parse(fs.readFileSync(filePath + '.json', 'utf8'));
+        isOneTime = metaData.metadata.expiration === 'onetime';
 
-        archive.file(filePath, { name: fileName }); // Add file to ZIP
+        // Add file to ZIP
+        archive.file(filePath, { name: metaData.metadata.filename }); 
       }
     });
 
     archive.finalize(); // Finalize ZIP creation
+  });
+
+  // Delete bucket if one-time download
+  res.on('finish', () => {
+    if (isOneTime) {
+      deleteFolder(bucketId);
+    }
   });
 });
 

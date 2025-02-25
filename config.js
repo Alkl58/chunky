@@ -27,7 +27,7 @@ module.exports = {
   // env example: BUCKET_EXPIRATION=1h,6h,1d,3d,1w,2w,4w,8w
   BUCKET_EXPIRATION: process.env.BUCKET_EXPIRATION 
     ? process.env.BUCKET_EXPIRATION.split(',')
-    : ['1h', '6h', '1d', '3d', '1w', '2w', '4w', '8w'],
+    : ['1h', '6h', '1d', '3d', '1w', '2w', '4w', '8w', 'never', 'onetime'],
 
   // Default bucket expiration value
   BUCKET_EXPIRATION_DEFAULT: process.env.BUCKET_EXPIRATION ?? '4w',

@@ -5,6 +5,7 @@ export default {
     week: "{count} week | {count} weeks",
     month: "{count} month | {count} months",
     never: 'Never',
+    onetime: 'One-Time Download',
   },
   settings: 'Settings',
   password: 'Password',
