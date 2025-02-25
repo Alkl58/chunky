@@ -211,7 +211,6 @@ export default {
       totalUploaded: 0,
       password: null,
       showSettings: false,
-      expirations: [],
       expirationTime: '4w',
       loadingMessage: null,
       config: null,
@@ -247,7 +246,6 @@ export default {
             }
           } else {
             this.config = data;
-            this.expirations = this.config.BUCKET_EXPIRATION;
           }
         })
         .catch(err => {
