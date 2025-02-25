@@ -3,7 +3,8 @@ export default {
     hour: "{count} hour | {count} hours",
     day: "{count} day | {count} days",
     week: "{count} week | {count} weeks",
-    month: "{count} month | {count} months"
+    month: "{count} month | {count} months",
+    never: 'Never',
   },
   settings: 'Settings',
   password: 'Password',

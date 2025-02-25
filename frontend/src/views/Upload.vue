@@ -143,6 +143,9 @@
                 <span v-if="/[hdwm]$/.test(expiration)">
                   {{ $t(`expirations.${getExpirationUnit(expiration)}`, getExpirationValue(expiration)) }}
                 </span>
+                <span v-else>
+                  {{ $t(`expirations.${expiration}`) }}
+                </span>
               </option>
             </select>
           </div>
